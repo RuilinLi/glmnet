@@ -926,7 +926,7 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
         #                     nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
         wls_fit <- wls_dense_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
                                   x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-                                  maxit=100,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
+                                  maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
                                   nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
     }
 

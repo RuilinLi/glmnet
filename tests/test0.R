@@ -1,4 +1,4 @@
-#library(glmnet)
+library(glmnet)
 set.seed(1)
 n = 800
 p = 400
@@ -6,7 +6,7 @@ X = matrix(rnorm(n*p),nrow = n, ncol = p)
 beta = rbinom(p,1,0.3) * rnorm(p)
 y = X %*% beta 
 
-fit = glmnet(X, y, family = gaussian(), lambda=c(0.03, 0.01))
+fit = glmnet(X, y, family = gaussian())
 
 
 # fit2 = glmnet(X, y, family = 'gaussian', lambda=0.02)
