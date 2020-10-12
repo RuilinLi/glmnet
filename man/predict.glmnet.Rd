@@ -16,13 +16,26 @@
 \usage{
 \method{coef}{glmnet}(object, s = NULL, exact = FALSE, ...)
 
-\method{predict}{glmnet}(object, newx, s = NULL, type = c("link",
-  "response", "coefficients", "nonzero", "class"), exact = FALSE,
-  newoffset, ...)
-
-\method{predict}{relaxed}(object, newx, s = NULL, gamma = 1,
+\method{predict}{glmnet}(
+  object,
+  newx,
+  s = NULL,
   type = c("link", "response", "coefficients", "nonzero", "class"),
-  exact = FALSE, newoffset, ...)
+  exact = FALSE,
+  newoffset,
+  ...
+)
+
+\method{predict}{relaxed}(
+  object,
+  newx,
+  s = NULL,
+  gamma = 1,
+  type = c("link", "response", "coefficients", "nonzero", "class"),
+  exact = FALSE,
+  newoffset,
+  ...
+)
 }
 \arguments{
 \item{object}{Fitted \code{"glmnet"} model object or a \code{"relaxed"}
@@ -121,7 +134,7 @@ Hazards Model via Coordinate Descent, Journal of Statistical Software, Vol.
 }
 \author{
 Jerome Friedman, Trevor Hastie and Rob Tibshirani\cr Maintainer:
-Trevor Hastie \href{mailto:hastie@stanford.edu}{hastie@stanford.edu}
+Trevor Hastie <hastie@stanford.edu>
 }
 \keyword{models}
 \keyword{regression}

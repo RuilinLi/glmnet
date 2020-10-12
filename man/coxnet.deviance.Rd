@@ -4,8 +4,14 @@
 \alias{coxnet.deviance}
 \title{compute deviance for cox model output}
 \usage{
-coxnet.deviance(pred = NULL, y, x = 0, offset = NULL,
-  weights = NULL, beta = NULL)
+coxnet.deviance(
+  pred = NULL,
+  y,
+  x = 0,
+  offset = NULL,
+  weights = NULL,
+  beta = NULL
+)
 }
 \arguments{
 \item{pred}{matrix of predictions}
@@ -34,7 +40,7 @@ right-censored survival data
 \code{coxgrad}
 }
 \author{
-Trevor Hastie\cr Maintainer: Trevor Hastie \href{mailto:hastie@stanford.edu}{hastie@stanford.edu}
+Trevor Hastie\cr Maintainer: Trevor Hastie <hastie@stanford.edu>
 }
 \keyword{Cox}
 \keyword{model}

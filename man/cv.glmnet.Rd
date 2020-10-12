@@ -4,11 +4,24 @@
 \alias{cv.glmnet}
 \title{Cross-validation for glmnet}
 \usage{
-cv.glmnet(x, y, weights = NULL, offset = NULL, lambda = NULL,
-  type.measure = c("default", "mse", "deviance", "class", "auc", "mae",
-  "C"), nfolds = 10, foldid = NULL, alignment = c("lambda",
-  "fraction"), grouped = TRUE, keep = FALSE, parallel = FALSE,
-  gamma = c(0, 0.25, 0.5, 0.75, 1), relax = FALSE, trace.it = 0, ...)
+cv.glmnet(
+  x,
+  y,
+  weights = NULL,
+  offset = NULL,
+  lambda = NULL,
+  type.measure = c("default", "mse", "deviance", "class", "auc", "mae", "C"),
+  nfolds = 10,
+  foldid = NULL,
+  alignment = c("lambda", "fraction"),
+  grouped = TRUE,
+  keep = FALSE,
+  parallel = FALSE,
+  gamma = c(0, 0.25, 0.5, 0.75, 1),
+  relax = FALSE,
+  trace.it = 0,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{x} matrix as in \code{glmnet}.}

@@ -7,11 +7,15 @@
 \alias{predict.cv.relaxed}
 \title{make predictions from a "cv.glmnet" object.}
 \usage{
-\method{predict}{cv.glmnet}(object, newx, s = c("lambda.1se",
-  "lambda.min"), ...)
+\method{predict}{cv.glmnet}(object, newx, s = c("lambda.1se", "lambda.min"), ...)
 
-\method{predict}{cv.relaxed}(object, newx, s = c("lambda.1se",
-  "lambda.min"), gamma = c("gamma.1se", "gamma.min"), ...)
+\method{predict}{cv.relaxed}(
+  object,
+  newx,
+  s = c("lambda.1se", "lambda.min"),
+  gamma = c("gamma.1se", "gamma.min"),
+  ...
+)
 }
 \arguments{
 \item{object}{Fitted \code{"cv.glmnet"} or \code{"cv.relaxed"} object.}
@@ -75,7 +79,7 @@ Forward Stepwise Selection, and the Lasso}
 }
 \author{
 Jerome Friedman, Trevor Hastie and Rob Tibshirani\cr Maintainer:
-Trevor Hastie \href{mailto:hastie@stanford.edu}{hastie@stanford.edu}
+Trevor Hastie <hastie@stanford.edu>
 }
 \keyword{models}
 \keyword{regression}

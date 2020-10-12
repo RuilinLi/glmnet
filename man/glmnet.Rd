@@ -5,20 +5,36 @@
 \alias{relax.glmnet}
 \title{fit a GLM with lasso or elasticnet regularization}
 \usage{
-glmnet(x, y, family = c("gaussian", "binomial", "poisson", "multinomial",
-  "cox", "mgaussian"), weights = NULL, offset = NULL, alpha = 1,
-  nlambda = 100, lambda.min.ratio = ifelse(nobs < nvars, 0.01, 1e-04),
-  lambda = NULL, standardize = TRUE, intercept = TRUE,
-  thresh = 1e-07, dfmax = nvars + 1, pmax = min(dfmax * 2 + 20,
-  nvars), exclude = NULL, penalty.factor = rep(1, nvars),
-  lower.limits = -Inf, upper.limits = Inf, maxit = 1e+05,
+glmnet(
+  x,
+  y,
+  family = c("gaussian", "binomial", "poisson", "multinomial", "cox", "mgaussian"),
+  weights = NULL,
+  offset = NULL,
+  alpha = 1,
+  nlambda = 100,
+  lambda.min.ratio = ifelse(nobs < nvars, 0.01, 1e-04),
+  lambda = NULL,
+  standardize = TRUE,
+  intercept = TRUE,
+  thresh = 1e-07,
+  dfmax = nvars + 1,
+  pmax = min(dfmax * 2 + 20, nvars),
+  exclude = NULL,
+  penalty.factor = rep(1, nvars),
+  lower.limits = -Inf,
+  upper.limits = Inf,
+  maxit = 1e+05,
   type.gaussian = ifelse(nvars < 500, "covariance", "naive"),
   type.logistic = c("Newton", "modified.Newton"),
-  standardize.response = FALSE, type.multinomial = c("ungrouped",
-  "grouped"), relax = FALSE, trace.it = 0, ...)
+  standardize.response = FALSE,
+  type.multinomial = c("ungrouped", "grouped"),
+  relax = FALSE,
+  trace.it = 0,
+  ...
+)
 
-relax.glmnet(fit, x, ..., maxp = n - 3, path = FALSE,
-  check.args = TRUE)
+relax.glmnet(fit, x, ..., maxp = n - 3, path = FALSE, check.args = TRUE)
 }
 \arguments{
 \item{x}{input matrix, of dimension nobs x nvars; each row is an observation
@@ -42,7 +58,7 @@ produces such a matrix. For \code{family="mgaussian"}, \code{y} is a matrix
 of quantitative responses.}
 
 \item{family}{Response type (see above). Either a character string representing
-one of the built-in families, or else a \code{glm()} family object.}
+one of the built-in families, or else a `glm()` family object.}
 
 \item{weights}{observation weights. Can be total counts if responses are
 proportion matrices. Default is 1 for each observation}
@@ -219,7 +235,7 @@ descent. For \code{family="gaussian"} this is the lasso sequence if
 \code{alpha=1}, else it is the elasticnet sequence.
 
 From version 4.0 onwards, glmnet supports both the original built-in families,
-as well as \emph{any} family object as used by \code{stats:glm()}.
+as well as \emph{any} family object as used by `stats:glm()`.
 The built in families are specifed via a character string. For all families,
 the object produced is a lasso or elasticnet regularization path for fitting the
 generalized linear regression paths, by maximizing the appropriate penalized
@@ -258,10 +274,10 @@ with censored times, we assume the censored times occurred just
 users prefer the usual convention of \emph{after}, they can add a small
 number to all censoring times to achieve this effect.
 
-Version 4.0 and later allows for the family argument to be a S3 class \code{"family"} object
+Version 4.0 and later allows for the family argument to be a S3 class `"family"` object
 (a list of functions and expressions).
 This opens the door to a wide variety of additional models. For example
-\code{family=binomial(link=cloglog)} or \code{family=negative.binomial(theta=1.5)} (from the MASS library).
+`family=binomial(link=cloglog)` or `family=negative.binomial(theta=1.5)` (from the MASS library).
 Note that the code runs faster for the built-in families.
 
 If \code{relax=TRUE}

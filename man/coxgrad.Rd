@@ -32,7 +32,7 @@ in applications where \code{p} is very large (as in GWAS). Uses the Breslow appr
 \code{coxnet.deviance}
 }
 \author{
-Trevor Hastie\cr Maintainer: Trevor Hastie \href{mailto:hastie@stanford.edu}{hastie@stanford.edu}
+Trevor Hastie\cr Maintainer: Trevor Hastie <hastie@stanford.edu>
 }
 \keyword{Cox}
 \keyword{model}

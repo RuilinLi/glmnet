@@ -5,8 +5,7 @@
 \alias{print.cv.relaxed}
 \title{print a cross-validated glmnet object}
 \usage{
-\method{print}{cv.glmnet}(x, digits = max(3, getOption("digits") - 3),
-  ...)
+\method{print}{cv.glmnet}(x, digits = max(3, getOption("digits") - 3), ...)
 }
 \arguments{
 \item{x}{fitted 'cv.glmnet' object}
@@ -47,7 +46,7 @@ Best Subset Selection, Forward Stepwise Selection, and the Lasso}
 }
 \author{
 Jerome Friedman, Trevor Hastie and Rob Tibshirani\cr Maintainer:
-Trevor Hastie \href{mailto:hastie@stanford.edu}{hastie@stanford.edu}
+Trevor Hastie <hastie@stanford.edu>
 }
 \keyword{models}
 \keyword{regression}
