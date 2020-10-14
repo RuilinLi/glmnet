@@ -58,8 +58,9 @@ class PlinkMatrix : public MatrixGlmnet {
                              int* variant_subset, const uintptr_t vsubset_size);
 
     double dot_product(int j, const double* v);
-    double xv2(int j, const double* v);
+    double vx2(int j, const double* v);
     double column_product(int i, int j);
+    void update_res(int j, double d, const double* v, double* __restrict r);
 
    private:
     uintptr_t** compactM;

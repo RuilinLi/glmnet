@@ -355,7 +355,7 @@ double PlinkMatrix::column_product(int i, int j) {
     return plink2::genoarrproduct(compactM[i], compactM[j], _subset_size);
 }
 
-double PlinkMatrix::xv2(int j, const double* v) {
+double PlinkMatrix::vx2(int j, const double* v) {
     if (!malloc_all) {
         stop("Must load the input matrix before calling this function\n");
     }
@@ -363,6 +363,11 @@ double PlinkMatrix::xv2(int j, const double* v) {
         stop("Column out of range\n");
     }
     return plink2::LinearCombinationSquare(v, compactM[j], _subset_size);
+}
+
+void PlinkMatrix::update_res(int j, double d, const double* v,
+                             double* __restrict r) {
+    plink2::update_res_raw(compactM[j], d, v, r, _subset_size);
 }
 
 // Wrapper to load the compact matrix

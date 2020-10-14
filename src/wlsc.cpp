@@ -118,7 +118,6 @@ void wls_base(double alm0, double almc, double alpha, int m, int no, int ni,
         (*iz) = 1;
 
         while (true) {
-            
             (*nlp)++;
             double dlx = 0.0;
             for (int l = 0; l < (*nino); ++l) {
@@ -294,27 +293,23 @@ class Wls_Solver_Dense : public Wls_Solver {
 
 class Wls_Solver_plink {
    private:
-    PlinkMatrix X;
-
+   PlinkMatrix X;
    public:
-    Wls_Solver_plink(SEXP x2)
-           {
-               // Now I expect x2 to be a list with
-               // x2[0] is the name of the pgen file
-               // x2[1] is an integer array specifying the sample subset
-               // x2[2] is an integer array specifying the variant subset
-               const char * fname = CHAR(VECTOR_ELT(x2, 0));
-              Rprintf(fname);
-           }
-
+    Wls_Solver_plink(SEXP x2) {
+        // Now I expect x2 to be a list with
+        // x2[0] is the name of the pgen file
+        // x2[1] is an integer array specifying the sample subset
+        // x2[2] is an integer array specifying the variant subset
+        const char *fname = CHAR(STRING_ELT(VECTOR_ELT(x2, 0), 0));
+        Rprintf(fname);
+    }
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-SEXP wls_plink(SEXP x)
-{
+SEXP wls_plink(SEXP x) {
     Wls_Solver_plink a(x);
     return R_NilValue;
 }

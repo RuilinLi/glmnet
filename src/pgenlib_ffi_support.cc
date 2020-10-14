@@ -456,6 +456,49 @@ double genoarrproduct(const uintptr_t* genoarrx, const uintptr_t* genoarry, uint
   return result;
 }
 
+void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
+                            double *__restrict r, uint32_t sample_ct)
+  {
+    // This can be skipped if no missing data
+    STD_ARRAY_DECL(uint32_t, 4, genocounts);
+    GenoarrCountFreqsUnsafe(genoarr, sample_ct, genocounts);
+    const double numer = u63tod(genocounts[1] + 4.0 * genocounts[2]);
+    const double denom = u31tod(sample_ct - genocounts[3]);
+    const double xmean = numer/denom;
+
+      const uint32_t word_ct = DivUp(sample_ct, kBitsPerWordD2);
+
+  for (uint32_t widx = 0; widx != word_ct; ++widx) {
+    const uintptr_t geno_word = genoarr[widx];
+    if (!geno_word) {
+      continue;
+    }
+    const double* cur_weights = &(weights[widx * kBitsPerWordD2]);
+    uintptr_t geno_word1 = geno_word & kMask5555;
+    uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
+    uintptr_t geno_missing_word = geno_word1 & geno_word2;
+    geno_word1 ^= geno_missing_word;
+    while (geno_word1) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_word1) / 2;
+      r[sample_idx_lowbits+widx * kBitsPerWordD2] -= d * cur_weights[sample_idx_lowbits];
+      geno_word1 &= geno_word1 - 1;
+    }
+    geno_word2 ^= geno_missing_word;
+    while (geno_word2) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_word2) / 2;
+      r[sample_idx_lowbits+widx * kBitsPerWordD2] -= d * cur_weights[sample_idx_lowbits] * 2.0;
+      geno_word2 &= geno_word2 - 1;
+    }
+    while (geno_missing_word) {
+      // TO DO, how to solve this case?
+      const uint32_t sample_idx_lowbits = ctzw(geno_missing_word) / 2;
+      r[sample_idx_lowbits+widx * kBitsPerWordD2] -= d * cur_weights[sample_idx_lowbits] * xmean;
+      geno_missing_word &= geno_missing_word - 1;
+    }
+  }
+  return;
+  }
+
 void BytesToBitsUnsafe(const uint8_t* boolbytes, uint32_t sample_ct, uintptr_t* bitarr) {
   const uint32_t ull_ct_m1 = (sample_ct - 1) / 8;
   const uint64_t* read_alias = R_CAST(const uint64_t*, boolbytes);
