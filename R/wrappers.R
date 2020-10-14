@@ -12,3 +12,10 @@ wls_dense_cpp <- function(alm0, almc, alpha, m, no, ni,
                           "rsqc", "nlp", "jerr")
  result
 }
+
+
+#' @export
+wls_plink <- function(s) {
+  result = .Call('wls_plink', s)
+ result
+}

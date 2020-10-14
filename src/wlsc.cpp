@@ -292,9 +292,32 @@ class Wls_Solver_Dense : public Wls_Solver {
     }
 };
 
+class Wls_Solver_plink {
+   private:
+    PlinkMatrix X;
+
+   public:
+    Wls_Solver_plink(SEXP x2)
+           {
+               // Now I expect x2 to be a list with
+               // x2[0] is the name of the pgen file
+               // x2[1] is an integer array specifying the sample subset
+               // x2[2] is an integer array specifying the variant subset
+               const char * fname = CHAR(VECTOR_ELT(x2, 0));
+              Rprintf(fname);
+           }
+
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+SEXP wls_plink(SEXP x)
+{
+    Wls_Solver_plink a(x);
+    return R_NilValue;
+}
 
 SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
                SEXP nvars2, SEXP x2, SEXP r2, SEXP v2, SEXP intr2, SEXP ju2,

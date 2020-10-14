@@ -10,6 +10,7 @@
 /* .Call calls */
 extern SEXP storePB(SEXP);
 extern SEXP wls_dense(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP wls_plink(SEXP);
 
 /* .Fortran calls */
 extern void F77_NAME(chg_big)(void *);
@@ -37,11 +38,11 @@ extern void F77_NAME(spelnet)(void *, void *, void *, void *, void *, void *, vo
 extern void F77_NAME(spfishnet)(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void F77_NAME(splognet)(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void F77_NAME(spwls)(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void F77_NAME(wls)(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CallMethodDef CallEntries[] = {
     {"storePB",   (DL_FUNC) &storePB,    1},
     {"wls_dense", (DL_FUNC) &wls_dense, 27},
+    {"wls_plink", (DL_FUNC) &wls_plink,  1},
     {NULL, NULL, 0}
 };
 
@@ -71,7 +72,6 @@ static const R_FortranMethodDef FortranEntries[] = {
     {"spfishnet",         (DL_FUNC) &F77_NAME(spfishnet),         31},
     {"splognet",          (DL_FUNC) &F77_NAME(splognet),          32},
     {"spwls",             (DL_FUNC) &F77_NAME(spwls),             31},
-    {"wls",               (DL_FUNC) &F77_NAME(wls),               27},
     {NULL, NULL, 0}
 };
 
