@@ -17,7 +17,7 @@ class MatrixGlmnet {
 
     // Set r = r - d*v*x[,j]
     virtual void update_res(int j, double d, const double* v,
-                            double* __restrict r) = 0;
+                            double* r) = 0;
 
     static double sumv(const double* v, int len);
 
@@ -37,7 +37,7 @@ class DenseM : public MatrixGlmnet {
 
     double vx2(int j, const double* v);
 
-    void update_res(int j, double d, const double* v, double* __restrict r);
+    void update_res(int j, double d, const double* v, double* r);
 
    private:
     const double* data;
@@ -59,7 +59,7 @@ class PlinkMatrix : public MatrixGlmnet {
     double dot_product(int j, const double* v);
     double vx2(int j, const double* v);
     double column_product(int i, int j);
-    void update_res(int j, double d, const double* v, double* __restrict r);
+    void update_res(int j, double d, const double* v, double* r);
 
    private:
     uintptr_t** compactM;

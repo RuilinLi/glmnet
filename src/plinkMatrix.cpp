@@ -308,7 +308,7 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
     if (!compactM) {
         stop("out of memory\n");
     }
-    const uintptr_t byte_ct = genovec_byte_ct;  //(_subset_size + 3) / 4;
+    const uintptr_t byte_ct = (_subset_size + 3) / 4;// genovec_byte_ct;  //(_subset_size + 3) / 4;
 
     for (uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx) {
         compactM[col_idx] = (uintptr_t*)malloc(byte_ct);
@@ -367,7 +367,7 @@ double PlinkMatrix::vx2(int j, const double* v) {
 }
 
 void PlinkMatrix::update_res(int j, double d, const double* v,
-                             double* __restrict r) {
+                             double* r) {
     plink2::update_res_raw(compactM[j], d, v, r, _subset_size);
 }
 

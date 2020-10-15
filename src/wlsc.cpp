@@ -6,7 +6,7 @@
 #include "Rinternals.h"
 #include "glmnetMatrix.h"
 void wls_base(double alm0, double almc, double alpha, int m, int no, int ni,
-              MatrixGlmnet *X, double *__restrict r, const double *v, int intr,
+              MatrixGlmnet *X, double *r, const double *v, int intr,
               const int *ju, const double *vp, const double *cl, int nx,
               double thr, int maxit, double *__restrict a, double *aint,
               double *__restrict g, int *__restrict ia, int *__restrict iy,
@@ -21,6 +21,9 @@ void wls_base(double alm0, double almc, double alpha, int m, int no, int ni,
     for (int j = 0; j < ni; ++j) {
         if (ju[j]) {
             g[j] = abs(X->dot_product(j, r));
+            if (j < 10) {
+                Rprintf("g[%d] is %f \n", j, g[j]);
+            }
 
         } else {
             continue;
@@ -323,8 +326,26 @@ class Wls_Solver_Plink : public Wls_Solver {
         int *vsubset = INTEGER(VECTOR_ELT(xr, 2));
         const uintptr_t vsubset_size = length(VECTOR_ELT(xr, 2));
 
+        for (int i = 0; i < vsubset_size; ++i) {
+            // Rprintf("The %dth inner product is %f\n", i, X.dot_product(i, myr));
+            Rprintf("variant subset i=%d is %d\n",i, vsubset[i]);
+        }
+
         X.load_compact_matrix(fname, UINT32_MAX, sample_subset, subset_size,
                               vsubset, vsubset_size);
+        double *myr = (double *)malloc(sizeof(double) * subset_size);
+
+        for (int i = 0; i < subset_size; ++i) {
+            Rprintf("sample subset %d is  %d\n", i, sample_subset[i]);
+        }
+        Rprintf("file name is %s\n", fname);
+
+        for (int i = 0; i < vsubset_size; ++i) {
+            // Rprintf("The %dth inner product is %f\n", i, X.dot_product(i, myr));
+            Rprintf("variant subset i=%d is %d\n", i,vsubset[i]);
+        }
+        free(myr);
+        return;
 
         wls_base(alm0, almc, alpha, m, no, ni, &X, r, v, intr, ju, vp, cl, nx,
                  thr, maxit, a, aint, g, ia, iy, iz, mm, nino, rsqc, nlp, jerr);

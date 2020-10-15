@@ -457,7 +457,7 @@ double genoarrproduct(const uintptr_t* genoarrx, const uintptr_t* genoarry, uint
 }
 
 void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
-                            double *__restrict r, uint32_t sample_ct)
+                            double * r, uint32_t sample_ct)
   {
     // This can be skipped if no missing data
     STD_ARRAY_DECL(uint32_t, 4, genocounts);
@@ -474,25 +474,26 @@ void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
       continue;
     }
     const double* cur_weights = &(weights[widx * kBitsPerWordD2]);
+    double* cur_r = &(r[widx * kBitsPerWordD2]);
     uintptr_t geno_word1 = geno_word & kMask5555;
     uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
     uintptr_t geno_missing_word = geno_word1 & geno_word2;
     geno_word1 ^= geno_missing_word;
     while (geno_word1) {
       const uint32_t sample_idx_lowbits = ctzw(geno_word1) / 2;
-      r[sample_idx_lowbits+widx * kBitsPerWordD2] -= d * cur_weights[sample_idx_lowbits];
+      cur_r[sample_idx_lowbits] -= d * cur_weights[sample_idx_lowbits];
       geno_word1 &= geno_word1 - 1;
     }
     geno_word2 ^= geno_missing_word;
     while (geno_word2) {
       const uint32_t sample_idx_lowbits = ctzw(geno_word2) / 2;
-      r[sample_idx_lowbits+widx * kBitsPerWordD2] -= d * cur_weights[sample_idx_lowbits] * 2.0;
+      cur_r[sample_idx_lowbits] -= d * cur_weights[sample_idx_lowbits] * 2.0;
       geno_word2 &= geno_word2 - 1;
     }
     while (geno_missing_word) {
       // TO DO, how to solve this case?
       const uint32_t sample_idx_lowbits = ctzw(geno_missing_word) / 2;
-      r[sample_idx_lowbits+widx * kBitsPerWordD2] -= d * cur_weights[sample_idx_lowbits] * xmean;
+      cur_r[sample_idx_lowbits] -= d * cur_weights[sample_idx_lowbits] * xmean;
       geno_missing_word &= geno_missing_word - 1;
     }
   }
