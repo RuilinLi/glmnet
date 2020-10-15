@@ -35,3 +35,26 @@ a=wls_plink_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
                maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
                nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
 
+
+setClass("PlinkMatrix", representation(samples = "integer", variants="integer", fname="character"),
+         contains = "Matrix")
+PlinkMatrix <- function(fname, samples, variants)
+{
+  samples =as.integer(sort(unique(samples)))
+  new("PlinkMatrix", samples=samples, variants = variants, fname=fname, Dim=c(length(samples),length(variants)))
+}
+a = glmnet::PlinkMatrix("/Users/ruilinli/plink-ng/toy_data.pgen", 1:100, 1:200)
+
+
+
+setGeneric("rowmax", function(object) {
+  standardGeneric("rowmax")
+})
+
+setMethod("rowmax", signature(object = "matrix"), function(object) {
+  apply(object, 2, max)
+})
+x = matrix(rnorm(20),4,5)
+
+rowmax(x)
+

@@ -8,6 +8,7 @@
 */
 
 /* .Call calls */
+extern SEXP PlinkMatrix_info(SEXP, SEXP, SEXP, SEXP);
 extern SEXP storePB(SEXP);
 extern SEXP wls_dense(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP wls_plink(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -40,9 +41,10 @@ extern void F77_NAME(splognet)(void *, void *, void *, void *, void *, void *, v
 extern void F77_NAME(spwls)(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"storePB",   (DL_FUNC) &storePB,    1},
-    {"wls_dense", (DL_FUNC) &wls_dense, 27},
-    {"wls_plink", (DL_FUNC) &wls_plink, 27},
+    {"PlinkMatrix_info", (DL_FUNC) &PlinkMatrix_info,  4},
+    {"storePB",          (DL_FUNC) &storePB,           1},
+    {"wls_dense",        (DL_FUNC) &wls_dense,        27},
+    {"wls_plink",        (DL_FUNC) &wls_plink,        27},
     {NULL, NULL, 0}
 };
 

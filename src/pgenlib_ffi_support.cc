@@ -15,7 +15,6 @@
 // along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pgenlib_ffi_support.h"
-#include "R.h"
 #ifdef __cplusplus
 namespace plink2 {
 #endif
@@ -393,9 +392,9 @@ double LinearCombinationSquare(const double* weights, const uintptr_t* genoarr, 
     // were present.
     STD_ARRAY_DECL(uint32_t, 4, genocounts);
     GenoarrCountFreqsUnsafe(genoarr, sample_ct, genocounts);
-    const double numer = u63tod(genocounts[1] + 4.0 * genocounts[2]);
+    const double numer = u63tod(genocounts[1] + 2.0 * genocounts[2]);
     const double denom = u31tod(sample_ct - genocounts[3]);
-    result += miss_weight * (numer / denom);
+    result += miss_weight * (numer / denom) * (numer / denom);
   }
   return result;
 }
@@ -441,7 +440,7 @@ double genoarrproduct(const uintptr_t* genoarrx, const uintptr_t* genoarry, uint
       result += ((double)xmissing_weight) * xmean;
     }
 
-    if((both_missing_count > 0) || (xmissing_weight > 0))
+    if((both_missing_count > 0) || (ymissing_weight > 0))
     {
       STD_ARRAY_DECL(uint32_t, 4, genocountsy);
       GenoarrCountFreqsUnsafe(genoarry, sample_ct, genocountsy);
@@ -499,6 +498,58 @@ void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
   }
   return;
   }
+
+void get_info(const uintptr_t* genoarr, const double *weights, uint32_t sample_ct, double* rbuf)
+{
+  const uint32_t word_ct = DivUp(sample_ct, kBitsPerWordD2);
+  double result = 0.0;
+  double result2 = 0.0;
+  double miss_weight = 0.0;
+  for (uint32_t widx = 0; widx != word_ct; ++widx) {
+    const uintptr_t geno_word = genoarr[widx];
+    if (!geno_word) {
+      continue;
+    }
+    const double* cur_weights = &(weights[widx * kBitsPerWordD2]);
+    uintptr_t geno_word1 = geno_word & kMask5555;
+    uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
+    uintptr_t geno_missing_word = geno_word1 & geno_word2;
+    geno_word1 ^= geno_missing_word;
+    while (geno_word1) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_word1) / 2;
+      result += cur_weights[sample_idx_lowbits];
+      geno_word1 &= geno_word1 - 1;
+    }
+    geno_word2 ^= geno_missing_word;
+    while (geno_word2) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_word2) / 2;
+      result2 += cur_weights[sample_idx_lowbits];
+      geno_word2 &= geno_word2 - 1;
+    }
+    while (geno_missing_word) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_missing_word) / 2;
+      miss_weight += cur_weights[sample_idx_lowbits];
+      geno_missing_word &= geno_missing_word - 1;
+    }
+  }
+  rbuf[0] = result + 2.0 * result2;
+  rbuf[1] = result + 4.0 * result2;
+    // bugfix (29 Oct 2019): previous mean-imputation formula was based on
+    // *weighted* MAF, which was obviously nonsense when negative weights
+    // were present.
+  STD_ARRAY_DECL(uint32_t, 4, genocounts);
+  GenoarrCountFreqsUnsafe(genoarr, sample_ct, genocounts);
+  const double numer = u63tod(genocounts[1] + 2.0 * genocounts[2]);
+  const double denom = u31tod(sample_ct - genocounts[3]);
+  const double xmean = numer / denom;
+  //result += miss_weight * (numer / denom);
+  rbuf[0] += miss_weight * xmean;
+  rbuf[1] += miss_weight * xmean * xmean;
+
+  rbuf[2] = (genocounts[2])?2.0:((genocounts[1])?1.0:0.0); // max
+  rbuf[3] = (genocounts[0])?0.0:((genocounts[1])?1.0:2.0); //min
+  
+}
 
 void BytesToBitsUnsafe(const uint8_t* boolbytes, uint32_t sample_ct, uintptr_t* bitarr) {
   const uint32_t ull_ct_m1 = (sample_ct - 1) / 8;

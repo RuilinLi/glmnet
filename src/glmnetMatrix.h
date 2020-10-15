@@ -16,8 +16,7 @@ class MatrixGlmnet {
     virtual double vx2(int j, const double* v) = 0;
 
     // Set r = r - d*v*x[,j]
-    virtual void update_res(int j, double d, const double* v,
-                            double* r) = 0;
+    virtual void update_res(int j, double d, const double* v, double* r) = 0;
 
     static double sumv(const double* v, int len);
 
@@ -43,7 +42,7 @@ class DenseM : public MatrixGlmnet {
     const double* data;
 };
 
-class PlinkMatrix : public MatrixGlmnet{
+class PlinkMatrix : public MatrixGlmnet {
    public:
     void Close();
     PlinkMatrix();
@@ -53,13 +52,15 @@ class PlinkMatrix : public MatrixGlmnet{
               const uint32_t subset_size);
     void ReadCompact(int* variant_subset, const uintptr_t vsubset_size);
 
-    uintptr_t** compactM;
     double dot_product(int j, const double* v);
     double vx2(int j, const double* v);
     double column_product(int i, int j);
     void update_res(int j, double d, const double* v, double* r);
+    void get_info(int j, const double* weights, uint32_t sample_ct,
+                  double* rbuf);
 
    private:
+    uintptr_t** compactM;
     plink2::PgenFileInfo* _info_ptr;
     plink2::RefcountedWptr* _allele_idx_offsetsp;
     plink2::RefcountedWptr* _nonref_flagsp;

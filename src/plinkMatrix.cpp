@@ -1,6 +1,6 @@
 #include <iostream>
 #include <stdexcept>
-#include "R.h"
+
 #include "glmnetMatrix.h"
 #include "pgenlib_ffi_support.h"
 #include "pgenlib_read.h"
@@ -369,4 +369,9 @@ double PlinkMatrix::vx2(int j, const double* v) {
 void PlinkMatrix::update_res(int j, double d, const double* v,
                              double* r) {
     plink2::update_res_raw(compactM[j], d, v, r, _subset_size);
+}
+
+void PlinkMatrix::get_info(int j, const double *weights, uint32_t sample_ct, double* rbuf)
+{
+    plink2::get_info(compactM[j], weights,  sample_ct,  rbuf);
 }
