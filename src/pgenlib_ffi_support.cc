@@ -15,7 +15,7 @@
 // along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pgenlib_ffi_support.h"
-
+#include "R.h"
 #ifdef __cplusplus
 namespace plink2 {
 #endif

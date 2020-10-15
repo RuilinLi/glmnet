@@ -1,7 +1,6 @@
-#include <bitset>
 #include <iostream>
 #include <stdexcept>
-
+#include "R.h"
 #include "glmnetMatrix.h"
 #include "pgenlib_ffi_support.h"
 #include "pgenlib_read.h"
@@ -10,6 +9,7 @@
 // https://github.com/chrchang/plink-ng/blob/master/2.0/pgenlibr/src/pgenlibr.cpp
 
 static void stop(const char* msg) { throw std::runtime_error(msg); }
+
 
 PlinkMatrix::PlinkMatrix()
     : _info_ptr(nullptr),
@@ -29,7 +29,6 @@ void PlinkMatrix::Load(const char* fname, int raw_sample_ct, int* sample_subset,
     if (!_info_ptr) {
         stop("Out of memory");
     }
-    no = (int)subset_size;
     plink2::PreinitPgfi(_info_ptr);
     uint32_t cur_sample_ct = UINT32_MAX;
     cur_sample_ct = raw_sample_ct;
@@ -101,8 +100,9 @@ void PlinkMatrix::Load(const char* fname, int raw_sample_ct, int* sample_subset,
         plink2::DivUp(file_sample_ct,
                       plink2::kBitsPerWord * plink2::kInt32PerVec) *
         plink2::kBytesPerVec;
-    genovec_byte_ct = plink2::DivUp(file_sample_ct, plink2::kNypsPerVec) *
-                      plink2::kBytesPerVec;
+    const uintptr_t genovec_byte_ct =
+        plink2::DivUp(file_sample_ct, plink2::kNypsPerVec) *
+        plink2::kBytesPerVec;
 
     const uintptr_t ac_byte_ct = plink2::RoundUpPow2(
         file_sample_ct * sizeof(plink2::AlleleCode), plink2::kBytesPerVec);
@@ -299,7 +299,6 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
     if (!_info_ptr) {
         stop("pgen is closed");
     }
-    ni = (int)vsubset_size;
     _vsubset_size = vsubset_size;
     // assume that buf has the correct dimensions
     const uint32_t raw_variant_ct = _info_ptr->raw_variant_ct;
@@ -308,7 +307,7 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
     if (!compactM) {
         stop("out of memory\n");
     }
-    const uintptr_t byte_ct = (_subset_size + 3) / 4;// genovec_byte_ct;  //(_subset_size + 3) / 4;
+    const uint32_t byte_ct = plink2::DivUp(_subset_size,  plink2::kBitsPerWordD2)*plink2::kBytesPerWord;
 
     for (uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx) {
         compactM[col_idx] = (uintptr_t*)malloc(byte_ct);
@@ -328,6 +327,7 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
             PgrGet(_subset_include_vec, _subset_index, _subset_size,
                    variant_idx, _state_ptr, _pgv.genovec);
         memcpy(compactM[col_idx], _pgv.genovec, byte_ct);
+        plink2::ZeroTrailingNyps(_subset_size, compactM[col_idx]);
         if (reterr != plink2::kPglRetSuccess) {
             char errstr_buf[256];
             sprintf(errstr_buf, "PgrGet() error %d", static_cast<int>(reterr));
@@ -369,14 +369,4 @@ double PlinkMatrix::vx2(int j, const double* v) {
 void PlinkMatrix::update_res(int j, double d, const double* v,
                              double* r) {
     plink2::update_res_raw(compactM[j], d, v, r, _subset_size);
-}
-
-// Wrapper to load the compact matrix
-void PlinkMatrix::load_compact_matrix(const char* fname, int raw_sample_ct,
-                                      int* sample_subset,
-                                      const uint32_t subset_size,
-                                      int* variant_subset,
-                                      const uintptr_t vsubset_size) {
-    Load(fname, raw_sample_ct, sample_subset, subset_size);
-    ReadCompact(variant_subset, vsubset_size);
 }

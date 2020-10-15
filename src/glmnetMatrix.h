@@ -43,7 +43,7 @@ class DenseM : public MatrixGlmnet {
     const double* data;
 };
 
-class PlinkMatrix : public MatrixGlmnet {
+class PlinkMatrix : public MatrixGlmnet{
    public:
     void Close();
     PlinkMatrix();
@@ -52,17 +52,14 @@ class PlinkMatrix : public MatrixGlmnet {
     void Load(const char* fname, int raw_sample_ct, int* sample_subset,
               const uint32_t subset_size);
     void ReadCompact(int* variant_subset, const uintptr_t vsubset_size);
-    void load_compact_matrix(const char* fname, int raw_sample_ct,
-                             int* sample_subset, const uint32_t subset_size,
-                             int* variant_subset, const uintptr_t vsubset_size);
 
+    uintptr_t** compactM;
     double dot_product(int j, const double* v);
     double vx2(int j, const double* v);
     double column_product(int i, int j);
     void update_res(int j, double d, const double* v, double* r);
 
    private:
-    uintptr_t** compactM;
     plink2::PgenFileInfo* _info_ptr;
     plink2::RefcountedWptr* _allele_idx_offsetsp;
     plink2::RefcountedWptr* _nonref_flagsp;
@@ -74,7 +71,6 @@ class PlinkMatrix : public MatrixGlmnet {
     uint32_t _subset_size;
     bool malloc_all;
     uintptr_t _vsubset_size;
-    uintptr_t genovec_byte_ct;
 
     plink2::PgenVariant _pgv;
 

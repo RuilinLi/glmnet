@@ -1,11 +1,15 @@
 library(glmnet)
 library(pgenlibr)
 rm(list=ls())
-n = 100
+n = 300
 p = 200
 set.seed(1)
 sample_subset = 1:n
+sample_subset = sample_subset[-3]
 vsubset = 1:p
+vsubset = vsubset[-12]
+n = n-1
+p=p-1
 beta = rbinom(p,1,0.3) * rnorm(p)
 
 typeof(vsubset)
@@ -15,7 +19,9 @@ pgen <- pgenlibr::NewPgen("/Users/ruilinli/plink-ng/toy_data.pgen", pvar = NULL,
 
 X <- pgenlibr::ReadList(pgen, vsubset, meanimpute=F)
 y = X %*% beta 
-# Dense example
+# Dense example\
+fit = glmnet(X, y, family = 'gaussian', lambda=0.12190, standardize = F, intercept = F)
+
 fit = glmnet(X, y, family = gaussian(), lambda=0.12190, standardize = F, intercept = F)
 
 # plink example

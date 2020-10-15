@@ -21,9 +21,6 @@ void wls_base(double alm0, double almc, double alpha, int m, int no, int ni,
     for (int j = 0; j < ni; ++j) {
         if (ju[j]) {
             g[j] = abs(X->dot_product(j, r));
-            if (j < 10) {
-                Rprintf("g[%d] is %f \n", j, g[j]);
-            }
 
         } else {
             continue;
@@ -326,26 +323,8 @@ class Wls_Solver_Plink : public Wls_Solver {
         int *vsubset = INTEGER(VECTOR_ELT(xr, 2));
         const uintptr_t vsubset_size = length(VECTOR_ELT(xr, 2));
 
-        for (int i = 0; i < vsubset_size; ++i) {
-            // Rprintf("The %dth inner product is %f\n", i, X.dot_product(i, myr));
-            Rprintf("variant subset i=%d is %d\n",i, vsubset[i]);
-        }
-
-        X.load_compact_matrix(fname, UINT32_MAX, sample_subset, subset_size,
-                              vsubset, vsubset_size);
-        double *myr = (double *)malloc(sizeof(double) * subset_size);
-
-        for (int i = 0; i < subset_size; ++i) {
-            Rprintf("sample subset %d is  %d\n", i, sample_subset[i]);
-        }
-        Rprintf("file name is %s\n", fname);
-
-        for (int i = 0; i < vsubset_size; ++i) {
-            // Rprintf("The %dth inner product is %f\n", i, X.dot_product(i, myr));
-            Rprintf("variant subset i=%d is %d\n", i,vsubset[i]);
-        }
-        free(myr);
-        return;
+        X.Load(fname, UINT32_MAX, sample_subset, subset_size);
+        X.ReadCompact(vsubset, vsubset_size);
 
         wls_base(alm0, almc, alpha, m, no, ni, &X, r, v, intr, ju, vp, cl, nx,
                  thr, maxit, a, aint, g, ia, iy, iz, mm, nino, rsqc, nlp, jerr);
@@ -357,15 +336,15 @@ class Wls_Solver_Plink : public Wls_Solver {
 extern "C" {
 #endif
 
-SEXP another_test(SEXP x) {
-    PlinkMatrix p;
-    const char *fname = CHAR(STRING_ELT(VECTOR_ELT(x, 0), 0));
-    int sample_subset[] = {1, 3, 4, 5, 6, 7, 8, 9};
-    int vsubset[] = {1, 3, 4, 5, 6, 7, 8, 9, 10, 15};
-    p.load_compact_matrix(fname, UINT32_MAX, sample_subset, 8, vsubset, 10);
-    Rprintf("The length is %d", length(VECTOR_ELT(x, 1)));
-    return R_NilValue;
-}
+// SEXP another_test(SEXP x) {
+//     PlinkMatrix p;
+//     const char *fname = CHAR(STRING_ELT(VECTOR_ELT(x, 0), 0));
+//     int sample_subset[] = {1, 3, 4, 5, 6, 7, 8, 9};
+//     int vsubset[] = {1, 3, 4, 5, 6, 7, 8, 9, 10, 15};
+//     p.load_compact_matrix(fname, UINT32_MAX, sample_subset, 8, vsubset, 10);
+//     Rprintf("The length is %d", length(VECTOR_ELT(x, 1)));
+//     return R_NilValue;
+// }
 
 SEXP wls_plink(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
                SEXP nvars2, SEXP x2, SEXP r2, SEXP v2, SEXP intr2, SEXP ju2,
