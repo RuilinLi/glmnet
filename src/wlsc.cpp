@@ -21,6 +21,10 @@ void wls_base(double alm0, double almc, double alpha, int m, int no, int ni,
     for (int j = 0; j < ni; ++j) {
         if (ju[j]) {
             g[j] = abs(X->dot_product(j, r));
+            if(j == 0)
+            {
+                Rprintf("g[0] is %f", g[0]);
+            }
         } else {
             continue;
         }
@@ -291,17 +295,55 @@ class Wls_Solver_Dense : public Wls_Solver {
     }
 };
 
-class Wls_Solver_plink {
+class Wls_Solver_Plink : public Wls_Solver {
    private:
-   PlinkMatrix X;
+    PlinkMatrix X;
+    SEXP xr;
+    bool already_solved;
+
    public:
-    Wls_Solver_plink(SEXP x2) {
-        // Now I expect x2 to be a list with
-        // x2[0] is the name of the pgen file
-        // x2[1] is an integer array specifying the sample subset
-        // x2[2] is an integer array specifying the variant subset
-        const char *fname = CHAR(STRING_ELT(VECTOR_ELT(x2, 0), 0));
-        Rprintf(fname);
+    Wls_Solver_Plink(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
+                     SEXP nvars2, SEXP x2, SEXP r2, SEXP v2, SEXP intr2,
+                     SEXP ju2, SEXP vp2, SEXP cl2, SEXP nx2, SEXP thr2,
+                     SEXP maxit2, SEXP a2, SEXP aint2, SEXP g2, SEXP ia2,
+                     SEXP iy2, SEXP iz2, SEXP mm2, SEXP nino2, SEXP rsqc2,
+                     SEXP nlp2, SEXP jerr2)
+        : Wls_Solver(alm02, almc2, alpha2, m2, nobs2, nvars2, x2, r2, v2, intr2,
+                     ju2, vp2, cl2, nx2, thr2, maxit2, a2, aint2, g2, ia2, iy2,
+                     iz2, mm2, nino2, rsqc2, nlp2, jerr2)
+    {
+        xr = x2;
+        already_solved = false;
+    }
+
+    void solve() {
+        if(already_solved)
+        {
+            // Do nothing
+            return;
+        }
+        const char *fname = CHAR(STRING_ELT(VECTOR_ELT(xr, 0), 0));
+        int *sample_subset = INTEGER(VECTOR_ELT(xr, 1));
+        const uint32_t subset_size = length(VECTOR_ELT(xr, 1));
+        int *vsubset = INTEGER(VECTOR_ELT(xr, 2));
+        const uintptr_t vsubset_size = length(VECTOR_ELT(xr, 2));
+        Rprintf("subset size is %d, and vsubset size is %d", subset_size, vsubset_size);
+        X.load_compact_matrix(fname, UINT32_MAX, sample_subset, subset_size, vsubset, vsubset_size);
+        double *myr = (double*)malloc(sizeof(double)*subset_size);
+        for(int j = 0; j < subset_size; ++j)
+        {
+            myr[j] = 1.1;
+        }
+        // Rprintf("simple dot product is %f", abs(X.dot_product(0, myr)));
+        // Rprintf("simple dot product is %f", abs(X.dot_product(0, myr)));
+        Rprintf("simple dot product is %f", abs(X.dot_product(1, myr)));
+        Rprintf("simple dot product is %f", abs(X.dot_product(vsubset_size-1, myr)));
+        Rprintf("test printing %f", myr[1]);
+        free(myr);
+
+        wls_base(alm0, almc, alpha, m, no, ni, &X, r, v, intr, ju, vp, cl, nx,
+                 thr, maxit, a, aint, g, ia, iy, iz, mm, nino, rsqc, nlp, jerr);
+        already_solved = true;
     }
 };
 
@@ -309,9 +351,27 @@ class Wls_Solver_plink {
 extern "C" {
 #endif
 
-SEXP wls_plink(SEXP x) {
-    Wls_Solver_plink a(x);
+SEXP another_test(SEXP x) {
+    PlinkMatrix p;
+    const char *fname = CHAR(STRING_ELT(VECTOR_ELT(x, 0), 0));
+    int sample_subset[] = {1, 3, 4, 5, 6, 7, 8, 9};
+    int vsubset[] = {1, 3, 4, 5, 6, 7, 8, 9, 10, 15};
+    p.load_compact_matrix(fname, UINT32_MAX, sample_subset, 8, vsubset, 10);
+    Rprintf("The length is %d", length(VECTOR_ELT(x, 1)));
     return R_NilValue;
+}
+
+SEXP wls_plink(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
+               SEXP nvars2, SEXP x2, SEXP r2, SEXP v2, SEXP intr2, SEXP ju2,
+               SEXP vp2, SEXP cl2, SEXP nx2, SEXP thr2, SEXP maxit2, SEXP a2,
+               SEXP aint2, SEXP g2, SEXP ia2, SEXP iy2, SEXP iz2, SEXP mm2,
+               SEXP nino2, SEXP rsqc2, SEXP nlp2, SEXP jerr2) {
+    Wls_Solver_Plink Solver(alm02, almc2, alpha2, m2, nobs2, nvars2, x2, r2, v2,
+                            intr2, ju2, vp2, cl2, nx2, thr2, maxit2, a2, aint2,
+                            g2, ia2, iy2, iz2, mm2, nino2, rsqc2, nlp2, jerr2);
+
+    Solver.solve();
+    return Solver.get_result();
 }
 
 SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,

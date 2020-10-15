@@ -1,6 +1,7 @@
 #ifndef GLMNET_MATRIX
 #define GLMNET_MATRIX
 #include <cstdlib>
+
 #include "pgenlib_ffi_support.h"
 #include "pgenlib_read.h"
 #include "pvar_ffi_support.h"
@@ -8,17 +9,17 @@
 class MatrixGlmnet {
    public:
     // Compute the inner product of X[,j] and v
-    virtual double dot_product(int j, const double *v) = 0;
+    virtual double dot_product(int j, const double* v) = 0;
     // Compute the inner product of X[,i] and X[,j]
     virtual double column_product(int i, int j) = 0;
     // Compute the inner product of X[,j]^2 and v
-    virtual double vx2(int j, const double *v) = 0;
+    virtual double vx2(int j, const double* v) = 0;
 
     // Set r = r - d*v*x[,j]
-    virtual void update_res(int j, double d, const double *v,
-                            double *__restrict r) = 0;
-    
-    static double sumv(const double * v, int len);
+    virtual void update_res(int j, double d, const double* v,
+                            double* __restrict r) = 0;
+
+    static double sumv(const double* v, int len);
 
    protected:
     int no;  // Number of rows
@@ -27,22 +28,20 @@ class MatrixGlmnet {
 
 class DenseM : public MatrixGlmnet {
    public:
-    DenseM(int no, int ni, const double *x);
+    DenseM(int no, int ni, const double* x);
     ~DenseM();
 
-    double dot_product(int j, const double *v);
+    double dot_product(int j, const double* v);
 
     double column_product(int i, int j);
 
-    double vx2(int j, const double *v);
+    double vx2(int j, const double* v);
 
-    void update_res(int j, double d, const double *v,
-                    double *__restrict r);
+    void update_res(int j, double d, const double* v, double* __restrict r);
 
    private:
-    const double *data;
+    const double* data;
 };
-
 
 class PlinkMatrix : public MatrixGlmnet {
    public:
@@ -75,6 +74,7 @@ class PlinkMatrix : public MatrixGlmnet {
     uint32_t _subset_size;
     bool malloc_all;
     uintptr_t _vsubset_size;
+    uintptr_t genovec_byte_ct;
 
     plink2::PgenVariant _pgv;
 
@@ -90,6 +90,5 @@ class PlinkMatrix : public MatrixGlmnet {
     void SetSampleSubsetInternal(int* sample_subset,
                                  const uint32_t subset_size);
 };
-
 
 #endif

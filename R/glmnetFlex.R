@@ -917,6 +917,12 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
                             x=x,ix=ix,jx=jx,xm=xm,xs=xs,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
                             maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
                             nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
+    } else if('plink' %in% class(x)){
+        wls_fit <- wls_plink_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
+                                 x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
+                                 maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
+                                 nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
+        
     } else {
         x <- as.double(x)
         # wls_fit <- .Fortran("wls",

@@ -2,11 +2,13 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "R.h"
 #include "glmnetMatrix.h"
 #include "pgenlib_ffi_support.h"
 #include "pgenlib_read.h"
 #include "pvar_ffi_support.h"
-// This is mostly adapted from the pgenlibr code https://github.com/chrchang/plink-ng/blob/master/2.0/pgenlibr/src/pgenlibr.cpp
+// This is mostly adapted from the pgenlibr code
+// https://github.com/chrchang/plink-ng/blob/master/2.0/pgenlibr/src/pgenlibr.cpp
 
 static void stop(const char* msg) { throw std::runtime_error(msg); }
 
@@ -100,9 +102,9 @@ void PlinkMatrix::Load(const char* fname, int raw_sample_ct, int* sample_subset,
         plink2::DivUp(file_sample_ct,
                       plink2::kBitsPerWord * plink2::kInt32PerVec) *
         plink2::kBytesPerVec;
-    const uintptr_t genovec_byte_ct =
-        plink2::DivUp(file_sample_ct, plink2::kNypsPerVec) *
-        plink2::kBytesPerVec;
+    genovec_byte_ct = plink2::DivUp(file_sample_ct, plink2::kNypsPerVec) *
+                      plink2::kBytesPerVec;
+
     const uintptr_t ac_byte_ct = plink2::RoundUpPow2(
         file_sample_ct * sizeof(plink2::AlleleCode), plink2::kBytesPerVec);
     const uintptr_t ac2_byte_ct = plink2::RoundUpPow2(
@@ -307,8 +309,8 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
     if (!compactM) {
         stop("out of memory\n");
     }
-    const uint32_t byte_ct = (_subset_size + 3) / 4;
-
+    const uintptr_t byte_ct = genovec_byte_ct;  //(_subset_size + 3) / 4;
+    Rprintf("my byte count is %d", byte_ct);
     for (uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx) {
         compactM[col_idx] = (uintptr_t*)malloc(byte_ct);
         if (!compactM[col_idx]) {

@@ -10,7 +10,7 @@
 /* .Call calls */
 extern SEXP storePB(SEXP);
 extern SEXP wls_dense(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP wls_plink(SEXP);
+extern SEXP wls_plink(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 /* .Fortran calls */
 extern void F77_NAME(chg_big)(void *);
@@ -42,7 +42,7 @@ extern void F77_NAME(spwls)(void *, void *, void *, void *, void *, void *, void
 static const R_CallMethodDef CallEntries[] = {
     {"storePB",   (DL_FUNC) &storePB,    1},
     {"wls_dense", (DL_FUNC) &wls_dense, 27},
-    {"wls_plink", (DL_FUNC) &wls_plink,  1},
+    {"wls_plink", (DL_FUNC) &wls_plink, 27},
     {NULL, NULL, 0}
 };
 
