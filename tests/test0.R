@@ -16,7 +16,7 @@ pgen <- pgenlibr::NewPgen("/Users/ruilinli/plink-ng/toy_data.pgen", pvar = NULL,
 X <- pgenlibr::ReadList(pgen, vsubset, meanimpute=F)
 y = X %*% beta 
 # Dense example
-fit = glmnet(X, y, family = gaussian(), lambda=0.12190, standardize = F, intercept = F)
+fit = glmnet(X, y, family = 'gaussian', lambda=0.12190, standardize = F, intercept = F)
 
 # plink example
 

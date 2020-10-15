@@ -21,10 +21,7 @@ void wls_base(double alm0, double almc, double alpha, int m, int no, int ni,
     for (int j = 0; j < ni; ++j) {
         if (ju[j]) {
             g[j] = abs(X->dot_product(j, r));
-            if(j == 0)
-            {
-                Rprintf("g[0] is %f", g[0]);
-            }
+
         } else {
             continue;
         }
@@ -310,15 +307,13 @@ class Wls_Solver_Plink : public Wls_Solver {
                      SEXP nlp2, SEXP jerr2)
         : Wls_Solver(alm02, almc2, alpha2, m2, nobs2, nvars2, x2, r2, v2, intr2,
                      ju2, vp2, cl2, nx2, thr2, maxit2, a2, aint2, g2, ia2, iy2,
-                     iz2, mm2, nino2, rsqc2, nlp2, jerr2)
-    {
+                     iz2, mm2, nino2, rsqc2, nlp2, jerr2) {
         xr = x2;
         already_solved = false;
     }
 
     void solve() {
-        if(already_solved)
-        {
+        if (already_solved) {
             // Do nothing
             return;
         }
@@ -327,19 +322,9 @@ class Wls_Solver_Plink : public Wls_Solver {
         const uint32_t subset_size = length(VECTOR_ELT(xr, 1));
         int *vsubset = INTEGER(VECTOR_ELT(xr, 2));
         const uintptr_t vsubset_size = length(VECTOR_ELT(xr, 2));
-        Rprintf("subset size is %d, and vsubset size is %d", subset_size, vsubset_size);
-        X.load_compact_matrix(fname, UINT32_MAX, sample_subset, subset_size, vsubset, vsubset_size);
-        double *myr = (double*)malloc(sizeof(double)*subset_size);
-        for(int j = 0; j < subset_size; ++j)
-        {
-            myr[j] = 1.1;
-        }
-        // Rprintf("simple dot product is %f", abs(X.dot_product(0, myr)));
-        // Rprintf("simple dot product is %f", abs(X.dot_product(0, myr)));
-        Rprintf("simple dot product is %f", abs(X.dot_product(1, myr)));
-        Rprintf("simple dot product is %f", abs(X.dot_product(vsubset_size-1, myr)));
-        Rprintf("test printing %f", myr[1]);
-        free(myr);
+
+        X.load_compact_matrix(fname, UINT32_MAX, sample_subset, subset_size,
+                              vsubset, vsubset_size);
 
         wls_base(alm0, almc, alpha, m, no, ni, &X, r, v, intr, ju, vp, cl, nx,
                  thr, maxit, a, aint, g, ia, iy, iz, mm, nino, rsqc, nlp, jerr);

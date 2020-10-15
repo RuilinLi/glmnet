@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "R.h"
 #include "glmnetMatrix.h"
 #include "pgenlib_ffi_support.h"
 #include "pgenlib_read.h"
@@ -310,7 +309,7 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
         stop("out of memory\n");
     }
     const uintptr_t byte_ct = genovec_byte_ct;  //(_subset_size + 3) / 4;
-    Rprintf("my byte count is %d", byte_ct);
+
     for (uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx) {
         compactM[col_idx] = (uintptr_t*)malloc(byte_ct);
         if (!compactM[col_idx]) {
