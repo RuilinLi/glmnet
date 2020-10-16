@@ -48,6 +48,12 @@ PlinkMatrix <- function(fname, samples, variants, weight=NULL)
 
 
 
+#' @export
+xptrtest = function(fname, samples, variants)
+{
+  .Call('initialize_plinkmatrix_Xptr', fname, samples, variants)
+}
+
 setGeneric("colmax", function(object) {
   standardGeneric("colmax")
 })

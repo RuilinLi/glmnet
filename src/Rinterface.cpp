@@ -1,175 +1,20 @@
-#include <cmath>
-#include <cstdlib>
 
 #include "R.h"
 #include "R_ext/Print.h"
 #include "Rinternals.h"
 #include "glmnetMatrix.h"
+
 void wls_base(double alm0, double almc, double alpha, int m, int no, int ni,
               MatrixGlmnet *X, double *r, const double *v, int intr,
               const int *ju, const double *vp, const double *cl, int nx,
               double thr, int maxit, double *__restrict a, double *aint,
               double *__restrict g, int *__restrict ia, int *__restrict iy,
               int *iz, int *__restrict mm, int *nino, double *rsqc, int *nlp,
-              int *jerr) {
-    double *__restrict xv = (double *)malloc(sizeof(double) * ni);
-    double xmz = MatrixGlmnet::sumv(v, no);
-    double ab = almc * alpha;
-    double dem = almc * (1.0 - alpha);
-    double tlam = alpha * (2.0 * almc - alm0);
+              int *jerr);
 
-    for (int j = 0; j < ni; ++j) {
-        if (ju[j]) {
-            g[j] = abs(X->dot_product(j, r));
-
-        } else {
-            continue;
-        }
-
-        if (iy[j]) {
-            xv[j] = X->vx2(j, v);
-        } else if (g[j] > tlam * vp[j]) {
-            iy[j] = 1;
-            xv[j] = X->vx2(j, v);
-        }
-    }
-
-    bool jz = true;
-
-    while (true) {
-        if (!((*iz) && jz)) {
-            (*nlp)++;
-            double dlx = 0.0;
-            for (int j = 0; j < ni; ++j) {
-                if (!iy[j]) {
-                    continue;
-                }
-
-                double gj = X->dot_product(j, r);
-                double aj = a[j];
-                double u = gj + aj * xv[j];
-                double au = abs(u) - vp[j] * ab;
-                if (au < 0.0) {
-                    a[j] = 0.0;
-                } else {
-                    a[j] = fmax(cl[2 * j],
-                                fmin(cl[2 * j + 1],
-                                     copysign(au, u) / (xv[j] + vp[j] * dem)));
-                }
-
-                if (a[j] == aj) {
-                    continue;
-                }
-
-                if (mm[j] == 0) {
-                    (*nino)++;
-                    if ((*nino) > nx) {
-                        break;
-                    }
-                    mm[j] = (*nino);
-                    ia[(*nino) - 1] = j;
-                }
-                double d = a[j] - aj;
-                (*rsqc) += d * (2.0 * gj - d * xv[j]);
-                X->update_res(j, d, v, r);
-                dlx = fmax(xv[j] * d * d, dlx);
-            }
-            if ((*nino) > nx) {
-                break;
-            }
-            if (intr) {
-                double sumr = MatrixGlmnet::sumv(r, no);
-                double d = sumr / xmz;
-                (*aint) += d;
-                (*rsqc) += d * (2.0 * sumr - d * xmz);
-
-                dlx = fmax(dlx, xmz * d * d);
-
-                for (int i = 0; i < no; ++i) {
-                    r[i] -= d * v[i];
-                }
-            }
-
-            // KKT checking here
-            if (dlx < thr) {
-                bool ixx = false;
-                for (int j = 0; j < ni; ++j) {
-                    if (iy[j] || (!ju[j])) {
-                        continue;
-                    }
-                    g[j] = abs(X->dot_product(j, r));
-                    if (g[j] > ab * vp[j]) {
-                        iy[j] = 1;
-                        xv[j] = X->vx2(j, v);
-                        ixx = true;
-                    }
-                }
-
-                if (ixx) {
-                    continue;
-                }
-                break;
-            }
-
-            if ((*nlp) > maxit) {
-                *jerr = -m;
-                return;
-            }
-        }
-        (*iz) = 1;
-
-        while (true) {
-            (*nlp)++;
-            double dlx = 0.0;
-            for (int l = 0; l < (*nino); ++l) {
-                int k = ia[l];
-                double gk = X->dot_product(k, r);
-                double ak = a[k];
-                double u = gk + ak * xv[k];
-                double au = abs(u) - vp[k] * ab;
-                if (au < 0.0) {
-                    a[k] = 0.0;
-                } else {
-                    a[k] = fmax(cl[2 * k],
-                                fmin(cl[2 * k + 1],
-                                     copysign(au, u) / (xv[k] + vp[k] * dem)));
-                }
-
-                if (ak == a[k]) {
-                    continue;
-                }
-                double d = a[k] - ak;
-                (*rsqc) += d * (2.0 * gk - d * xv[k]);
-                X->update_res(k, d, v, r);
-                dlx = fmax(xv[k] * d * d, dlx);
-            }
-
-            if (intr) {
-                double sumr = MatrixGlmnet::sumv(r, no);
-                double d = sumr / xmz;
-                (*aint) += d;
-                (*rsqc) += d * (2.0 * sumr - d * xmz);
-
-                dlx = fmax(dlx, xmz * d * d);
-
-                for (int i = 0; i < no; ++i) {
-                    r[i] -= d * v[i];
-                }
-            }
-
-            if (dlx < thr) {
-                break;
-            }
-
-            if ((*nlp) > maxit) {
-                *jerr = -m;
-                return;
-            }
-        }
-        jz = false;
-    }
-    free(xv);
-    return;
+static void finalizer(SEXP xptr) {
+    PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(xptr);
+    delete p;
 }
 
 class Wls_Solver {
@@ -335,16 +180,27 @@ class Wls_Solver_Plink : public Wls_Solver {
 #ifdef __cplusplus
 extern "C" {
 #endif
+SEXP initialize_plinkmatrix_Xptr(SEXP fname2, SEXP sample_subset2,
+                                 SEXP vsubset2) {
+    const char *fname = CHAR(STRING_ELT(fname2, 0));
+    int *sample_subset = INTEGER(sample_subset2);
+    const uint32_t subset_size = length(sample_subset2);
+    int *vsubset = INTEGER(vsubset2);
+    const uintptr_t vsubset_size = length(vsubset2);
+    PlinkMatrix *p = new PlinkMatrix();
+    p->Load(fname, UINT32_MAX, sample_subset, subset_size);
+    p->ReadCompact(vsubset, vsubset_size);
+    SEXP xptr = R_MakeExternalPtr(p, R_NilValue, R_NilValue);
+    PROTECT(xptr);
+    R_RegisterCFinalizerEx(xptr, finalizer, TRUE);
+    UNPROTECT(1);
+    return xptr;
+}
 
-// SEXP another_test(SEXP x) {
-//     PlinkMatrix p;
-//     const char *fname = CHAR(STRING_ELT(VECTOR_ELT(x, 0), 0));
-//     int sample_subset[] = {1, 3, 4, 5, 6, 7, 8, 9};
-//     int vsubset[] = {1, 3, 4, 5, 6, 7, 8, 9, 10, 15};
-//     p.load_compact_matrix(fname, UINT32_MAX, sample_subset, 8, vsubset, 10);
-//     Rprintf("The length is %d", length(VECTOR_ELT(x, 1)));
-//     return R_NilValue;
-// }
+SEXP PlinkMatrix_infoTODO(SEXP weight2) {
+    // TO DO
+    return R_NilValue;
+}
 
 SEXP wls_plink(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
                SEXP nvars2, SEXP x2, SEXP r2, SEXP v2, SEXP intr2, SEXP ju2,
@@ -373,13 +229,13 @@ SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
 }
 
 SEXP PlinkMatrix_info(SEXP fname2, SEXP sample_subset2, SEXP vsubset2,
-                     SEXP weight2) {
+                      SEXP weight2) {
     const char *fname = CHAR(STRING_ELT(fname2, 0));
     int *sample_subset = INTEGER(sample_subset2);
     const uint32_t subset_size = length(sample_subset2);
     int *vsubset = INTEGER(vsubset2);
     const uintptr_t vsubset_size = length(vsubset2);
-    const double * weight = REAL(weight2);
+    const double *weight = REAL(weight2);
     PlinkMatrix X;
     X.Load(fname, UINT32_MAX, sample_subset, subset_size);
     X.ReadCompact(vsubset, vsubset_size);
@@ -389,12 +245,11 @@ SEXP PlinkMatrix_info(SEXP fname2, SEXP sample_subset2, SEXP vsubset2,
     SEXP xmax = PROTECT(allocVector(REALSXP, vsubset_size));
     SEXP xmin = PROTECT(allocVector(REALSXP, vsubset_size));
 
-    for(int j = 0; j < vsubset_size; ++j)
-    {   
+    for (int j = 0; j < vsubset_size; ++j) {
         double rbuf[4];
         X.get_info(j, weight, subset_size, rbuf);
         REAL(xm)[j] = rbuf[0];
-        REAL(xs)[j] = rbuf[1] - rbuf[0] * rbuf[0]; // weighted variance
+        REAL(xs)[j] = rbuf[1] - rbuf[0] * rbuf[0];  // weighted variance
         REAL(xmax)[j] = rbuf[2];
         REAL(xmin)[j] = rbuf[3];
     }
@@ -406,7 +261,6 @@ SEXP PlinkMatrix_info(SEXP fname2, SEXP sample_subset2, SEXP vsubset2,
 
     UNPROTECT(5);
     return result;
-
 }
 
 // SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,

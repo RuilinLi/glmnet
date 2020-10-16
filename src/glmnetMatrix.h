@@ -60,6 +60,8 @@ class PlinkMatrix : public MatrixGlmnet {
                   double* rbuf);
 
    private:
+    //double* xm;  // Column means; Only computed if de-mean
+    // double* xs;  // Column standard deviation; Only computed if standardize
     uintptr_t** compactM;
     plink2::PgenFileInfo* _info_ptr;
     plink2::RefcountedWptr* _allele_idx_offsetsp;

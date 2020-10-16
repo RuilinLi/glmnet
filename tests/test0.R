@@ -11,6 +11,7 @@ vsubset = vsubset[-12]
 n = n-1
 p=p-1
 beta = rbinom(p,1,0.3) * rnorm(p)
+res = glmnet::xptrtest("/Users/ruilinli/plink-ng/toy_data.pgen", sample_subset, vsubset)
 
 typeof(vsubset)
 
@@ -34,6 +35,8 @@ a=wls_plink_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
                x=x2,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
                maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
                nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
+
+glmnet::xptrtest("/Users/ruilinli/plink-ng/toy_data.pgen", sample_subset, vsubset)
 
 
 setClass("PlinkMatrix", representation(samples = "integer", variants="integer", fname="character"),

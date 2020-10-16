@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "R.h"
 #include "glmnetMatrix.h"
 #include "pgenlib_ffi_support.h"
 #include "pgenlib_read.h"
@@ -9,7 +10,6 @@
 // https://github.com/chrchang/plink-ng/blob/master/2.0/pgenlibr/src/pgenlibr.cpp
 
 static void stop(const char* msg) { throw std::runtime_error(msg); }
-
 
 PlinkMatrix::PlinkMatrix()
     : _info_ptr(nullptr),
@@ -292,7 +292,10 @@ void PlinkMatrix::SetSampleSubsetInternal(int* sample_subset_1based,
                                     &_subset_index);
     _subset_size = subset_size;
 }
-PlinkMatrix::~PlinkMatrix() { Close(); }
+PlinkMatrix::~PlinkMatrix() {
+    Close();
+    Rprintf("Destructor successful!\n");
+}
 
 void PlinkMatrix::ReadCompact(int* variant_subset,
                               const uintptr_t vsubset_size) {
@@ -307,7 +310,9 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
     if (!compactM) {
         stop("out of memory\n");
     }
-    const uint32_t byte_ct = plink2::DivUp(_subset_size,  plink2::kBitsPerWordD2)*plink2::kBytesPerWord;
+    const uint32_t byte_ct =
+        plink2::DivUp(_subset_size, plink2::kBitsPerWordD2) *
+        plink2::kBytesPerWord;
 
     for (uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx) {
         compactM[col_idx] = (uintptr_t*)malloc(byte_ct);
@@ -366,12 +371,11 @@ double PlinkMatrix::vx2(int j, const double* v) {
     return plink2::LinearCombinationSquare(v, compactM[j], _subset_size);
 }
 
-void PlinkMatrix::update_res(int j, double d, const double* v,
-                             double* r) {
+void PlinkMatrix::update_res(int j, double d, const double* v, double* r) {
     plink2::update_res_raw(compactM[j], d, v, r, _subset_size);
 }
 
-void PlinkMatrix::get_info(int j, const double *weights, uint32_t sample_ct, double* rbuf)
-{
-    plink2::get_info(compactM[j], weights,  sample_ct,  rbuf);
+void PlinkMatrix::get_info(int j, const double* weights, uint32_t sample_ct,
+                           double* rbuf) {
+    plink2::get_info(compactM[j], weights, sample_ct, rbuf);
 }
