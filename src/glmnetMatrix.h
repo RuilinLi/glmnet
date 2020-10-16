@@ -19,6 +19,7 @@ class MatrixGlmnet {
     virtual void update_res(int j, double d, const double* v, double* r) = 0;
 
     static double sumv(const double* v, int len);
+    virtual ~MatrixGlmnet();
 
    protected:
     int no;  // Number of rows

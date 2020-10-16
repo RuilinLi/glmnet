@@ -6,6 +6,8 @@
 #include <iostream>
 #include <numeric>
 
+MatrixGlmnet::~MatrixGlmnet(){}
+
 double MatrixGlmnet::sumv(const double * v, int len) {
     double result = 0.0;
     for (int i = 0; i < len; ++i) {
