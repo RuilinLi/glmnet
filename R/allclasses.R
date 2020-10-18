@@ -29,20 +29,37 @@ wls_plink_cpp <- function(alm0, almc, alpha, m, no, ni,
  result
 }
 
-setClass("PlinkMatrix", representation(samples = "integer", variants="integer", 
-                                        fname="character", xm="numeric", xs="numeric", xmax="numeric", xmin="numeric"),
+setClass("PlinkMatrix", representation(ptr='externalptr',
+                                      samples = "integer", 
+                                      variants="integer", 
+                                        fname="character", 
+                                        xm="numeric", 
+                                        xs="numeric", 
+                                        xmax="numeric", 
+                                        xmin="numeric"),
          contains = "Matrix")
 #' @export
 PlinkMatrix <- function(fname, samples, variants, weight=NULL)
 {
   samples =as.integer(sort(unique(samples)))
+  variants = as.integer(sort(unique(variants)))
   if(is.null(weight))
   {
       weight = rep(1.0/length(samples), length(samples))
+  } else
+  {
+    if(length(samples) != length(weight))
+    {
+      stop("weight must have the same length as the sample subset")
+    }
+    weight = weight/(sum(weight))
   }
-  info = .Call('PlinkMatrix_info', fname, samples, variants, weight)
 
-  new("PlinkMatrix", samples=samples, variants = variants, 
+  #info = .Call('PlinkMatrix_info', fname, samples, variants, weight)
+  ptr = .Call('initialize_plinkmatrix_Xptr', fname, samples, variants)
+  info = .Call('PlinkMatrix_info', ptr, weight)
+
+  new("PlinkMatrix", ptr = ptr, samples=samples, variants = variants, 
     fname=fname, Dim=c(length(samples),length(variants)), xm=info[[1]], xs=sqrt(info[[2]]), xmax=info[[3]], xmin=info[[4]])
 }
 

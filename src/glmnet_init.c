@@ -9,7 +9,7 @@
 
 /* .Call calls */
 extern SEXP initialize_plinkmatrix_Xptr(SEXP, SEXP, SEXP);
-extern SEXP PlinkMatrix_info(SEXP, SEXP, SEXP, SEXP);
+extern SEXP PlinkMatrix_info(SEXP, SEXP);
 extern SEXP storePB(SEXP);
 extern SEXP wls_dense(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP wls_plink(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -43,7 +43,7 @@ extern void F77_NAME(spwls)(void *, void *, void *, void *, void *, void *, void
 
 static const R_CallMethodDef CallEntries[] = {
     {"initialize_plinkmatrix_Xptr", (DL_FUNC) &initialize_plinkmatrix_Xptr,  3},
-    {"PlinkMatrix_info",            (DL_FUNC) &PlinkMatrix_info,             4},
+    {"PlinkMatrix_info",            (DL_FUNC) &PlinkMatrix_info,             2},
     {"storePB",                     (DL_FUNC) &storePB,                      1},
     {"wls_dense",                   (DL_FUNC) &wls_dense,                   27},
     {"wls_plink",                   (DL_FUNC) &wls_plink,                   27},

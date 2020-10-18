@@ -9,7 +9,7 @@
 // This is mostly adapted from the pgenlibr code
 // https://github.com/chrchang/plink-ng/blob/master/2.0/pgenlibr/src/pgenlibr.cpp
 
-static void stop(const char* msg) { throw std::runtime_error(msg); }
+static void stop(const char* msg) { error(msg); }
 
 PlinkMatrix::PlinkMatrix()
     : _info_ptr(nullptr),
@@ -242,6 +242,8 @@ void PlinkMatrix::Close() {
             free(compactM[i]);
         }
         free(compactM);
+        free(xm);
+        free(xs);
     }
     _subset_size = 0;
 }
@@ -339,7 +341,18 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
             stop(errstr_buf);
         }
     }
+    xm = (double*)malloc(sizeof(double)*vsubset_size);
+    xs = (double*)malloc(sizeof(double)*vsubset_size);
+    if(!xs)
+    {
+        stop("out of memory\n");
+    }
     malloc_all = true;
+    for(uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx)
+    {
+        xm[col_idx] = 0.0;
+        xs[col_idx] = 1.0;
+    }
 }
 
 double PlinkMatrix::dot_product(int j, const double* v) {
@@ -350,15 +363,20 @@ double PlinkMatrix::dot_product(int j, const double* v) {
         stop("Column out of range\n");
     }
 
-    return plink2::LinearCombinationMeanimpute(v, compactM[j], nullptr, nullptr,
-                                               _subset_size, 0);
+    double result = plink2::LinearCombinationMeanimpute(v, compactM[j], nullptr, nullptr,
+                                               _subset_size, 0, xm[j]);
+    result /= xs[j];
+    return result;
 }
 
 double PlinkMatrix::column_product(int i, int j) {
-    if ((i > _vsubset_size - 1) || (j > _vsubset_size - 1)) {
-        stop("Column out of range\n");
-    }
-    return plink2::genoarrproduct(compactM[i], compactM[j], _subset_size);
+    // This is probably not needed at all
+    stop("Not implemented yet!\n");
+    return 0.0;
+    // if ((i > _vsubset_size - 1) || (j > _vsubset_size - 1)) {
+    //     stop("Column out of range\n");
+    // }
+    // return plink2::genoarrproduct(compactM[i], compactM[j], _subset_size);
 }
 
 double PlinkMatrix::vx2(int j, const double* v) {
@@ -368,14 +386,19 @@ double PlinkMatrix::vx2(int j, const double* v) {
     if (j > _vsubset_size - 1) {
         stop("Column out of range\n");
     }
-    return plink2::LinearCombinationSquare(v, compactM[j], _subset_size);
+    double result = plink2::LinearCombinationSquare(v, compactM[j], _subset_size, xm[j]);
+    result /= (xs[j] * xs[j]);
+    return result;
 }
 
 void PlinkMatrix::update_res(int j, double d, const double* v, double* r) {
-    plink2::update_res_raw(compactM[j], d, v, r, _subset_size);
+    plink2::update_res_raw(compactM[j], d, v, r, _subset_size, xm[j], xs[j]);
 }
 
 void PlinkMatrix::get_info(int j, const double* weights, uint32_t sample_ct,
                            double* rbuf) {
     plink2::get_info(compactM[j], weights, sample_ct, rbuf);
 }
+
+uint32_t PlinkMatrix::get_no(){return _subset_size;}
+uintptr_t PlinkMatrix::get_ni(){return _vsubset_size;}

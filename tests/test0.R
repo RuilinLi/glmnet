@@ -5,9 +5,9 @@ n = 300
 p = 200
 set.seed(1)
 sample_subset = 1:n
-sample_subset = sample_subset[-3]
+#sample_subset = sample_subset[-3]
 vsubset = 1:p
-vsubset = vsubset[-12]
+#vsubset = vsubset[-12]
 n = n-1
 p=p-1
 beta = rbinom(p,1,0.3) * rnorm(p)
@@ -21,7 +21,7 @@ pgen <- pgenlibr::NewPgen("/Users/ruilinli/plink-ng/toy_data.pgen", pvar = NULL,
 X <- pgenlibr::ReadList(pgen, vsubset, meanimpute=F)
 y = X %*% beta 
 # Dense example\
-fit = glmnet(X, y, family = 'gaussian', lambda=0.12190, standardize = F, intercept = F)
+#fit = glmnet(X, y, family = 'gaussian', lambda=0.12190, standardize = F, intercept = F)
 
 fit = glmnet(X, y, family = gaussian(), lambda=0.12190, standardize = F, intercept = F)
 
@@ -61,3 +61,11 @@ x = matrix(rnorm(20),4,5)
 
 rowmax(x)
 
+a = glmnet::PlinkMatrix("/Users/ruilinli/plink-ng/toy_data.pgen", 1:300, 1:200)
+
+
+
+# w = rep(1/300, 300)
+# 
+# apply(X, 2, function(r) sqrt(weighted.mean(r^2, w) -
+#                                weighted.mean(r, w)^2))

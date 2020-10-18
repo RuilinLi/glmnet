@@ -197,9 +197,35 @@ SEXP initialize_plinkmatrix_Xptr(SEXP fname2, SEXP sample_subset2,
     return xptr;
 }
 
-SEXP PlinkMatrix_infoTODO(SEXP weight2) {
+SEXP PlinkMatrix_info(SEXP ptr2, SEXP weight2) {
     // TO DO
-    return R_NilValue;
+    PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
+    const double *weight = REAL(weight2);
+    const uint32_t subset_size = length(weight2);
+    const uintptr_t vsubset_size = p->get_ni();
+    SEXP result = PROTECT(allocVector(VECSXP, 4));
+    SEXP xm = PROTECT(allocVector(REALSXP, vsubset_size));
+    SEXP xs = PROTECT(allocVector(REALSXP, vsubset_size));
+    SEXP xmax = PROTECT(allocVector(REALSXP, vsubset_size));
+    SEXP xmin = PROTECT(allocVector(REALSXP, vsubset_size));
+
+    for (int j = 0; j < vsubset_size; ++j) {
+        double rbuf[4];
+        p->get_info(j, weight, subset_size, rbuf);
+        REAL(xm)[j] = rbuf[0];
+        REAL(xs)[j] = rbuf[1] - rbuf[0] * rbuf[0];  // weighted variance
+        REAL(xmax)[j] = rbuf[2];
+        REAL(xmin)[j] = rbuf[3];
+    }
+
+    SET_VECTOR_ELT(result, 0, xm);
+    SET_VECTOR_ELT(result, 1, xs);
+    SET_VECTOR_ELT(result, 2, xmax);
+    SET_VECTOR_ELT(result, 3, xmin);
+
+    UNPROTECT(5);
+    return result;
+
 }
 
 SEXP wls_plink(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
@@ -228,8 +254,8 @@ SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
     return Solver.get_result();
 }
 
-SEXP PlinkMatrix_info(SEXP fname2, SEXP sample_subset2, SEXP vsubset2,
-                      SEXP weight2) {
+SEXP PlinkMatrix_info0(SEXP fname2, SEXP sample_subset2, SEXP vsubset2,
+                       SEXP weight2) {
     const char *fname = CHAR(STRING_ELT(fname2, 0));
     int *sample_subset = INTEGER(sample_subset2);
     const uint32_t subset_size = length(sample_subset2);

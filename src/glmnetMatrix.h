@@ -59,10 +59,16 @@ class PlinkMatrix : public MatrixGlmnet {
     void update_res(int j, double d, const double* v, double* r);
     void get_info(int j, const double* weights, uint32_t sample_ct,
                   double* rbuf);
+    bool center, standardize;
+
+    uint32_t get_no();
+    uintptr_t get_ni();
+
 
    private:
-    //double* xm;  // Column means; Only computed if de-mean
-    // double* xs;  // Column standard deviation; Only computed if standardize
+    double* xm;  // Column means; Only computed if centering, otherwise set to 0
+    double* xs;  // Column standard deviation; Only computed if standardize,
+                 // otherwise set to 1
     uintptr_t** compactM;
     plink2::PgenFileInfo* _info_ptr;
     plink2::RefcountedWptr* _allele_idx_offsetsp;
