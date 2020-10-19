@@ -46,7 +46,7 @@ PlinkMatrix <- function(fname, samples, variants)
   samples =as.integer(sort(unique(samples)))
   new("PlinkMatrix", samples=samples, variants = variants, fname=fname, Dim=c(length(samples),length(variants)))
 }
-a = glmnet::PlinkMatrix("/Users/ruilinli/plink-ng/toy_data.pgen", 1:100, 1:200)
+a = glmnet::PlinkMatrix("/Users/ruilinli/plink-ng/toy_data.pgen", 1:n, 1:p)
 
 
 

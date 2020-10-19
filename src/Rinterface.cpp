@@ -198,7 +198,7 @@ SEXP initialize_plinkmatrix_Xptr(SEXP fname2, SEXP sample_subset2,
 }
 
 SEXP PlinkMatrix_info(SEXP ptr2, SEXP weight2) {
-    // TO DO
+
     PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
     const double *weight = REAL(weight2);
     const uint32_t subset_size = length(weight2);
@@ -254,41 +254,26 @@ SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
     return Solver.get_result();
 }
 
-SEXP PlinkMatrix_info0(SEXP fname2, SEXP sample_subset2, SEXP vsubset2,
-                       SEXP weight2) {
-    const char *fname = CHAR(STRING_ELT(fname2, 0));
-    int *sample_subset = INTEGER(sample_subset2);
-    const uint32_t subset_size = length(sample_subset2);
-    int *vsubset = INTEGER(vsubset2);
-    const uintptr_t vsubset_size = length(vsubset2);
-    const double *weight = REAL(weight2);
-    PlinkMatrix X;
-    X.Load(fname, UINT32_MAX, sample_subset, subset_size);
-    X.ReadCompact(vsubset, vsubset_size);
-    SEXP result = PROTECT(allocVector(VECSXP, 4));
-    SEXP xm = PROTECT(allocVector(REALSXP, vsubset_size));
-    SEXP xs = PROTECT(allocVector(REALSXP, vsubset_size));
-    SEXP xmax = PROTECT(allocVector(REALSXP, vsubset_size));
-    SEXP xmin = PROTECT(allocVector(REALSXP, vsubset_size));
-
-    for (int j = 0; j < vsubset_size; ++j) {
-        double rbuf[4];
-        X.get_info(j, weight, subset_size, rbuf);
-        REAL(xm)[j] = rbuf[0];
-        REAL(xs)[j] = rbuf[1] - rbuf[0] * rbuf[0];  // weighted variance
-        REAL(xmax)[j] = rbuf[2];
-        REAL(xmin)[j] = rbuf[3];
-    }
-
-    SET_VECTOR_ELT(result, 0, xm);
-    SET_VECTOR_ELT(result, 1, xs);
-    SET_VECTOR_ELT(result, 2, xmax);
-    SET_VECTOR_ELT(result, 3, xmin);
-
-    UNPROTECT(5);
-    return result;
+SEXP PlinkSetMean(SEXP ptr2, SEXP xm2)
+{
+    PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
+    p->setxm(REAL(xm2));
+    return R_NilValue;
 }
 
+SEXP PlinkSetSd(SEXP ptr2, SEXP xs2)
+{
+    PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
+    p->setxs(REAL(xs2));
+    return R_NilValue;
+}
+
+SEXP PlinkMultiplyv(SEXP ptr2, SEXP v2, SEXP r2)
+{
+    PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
+    p->multiply_vector(REAL(v2), REAL(r2));
+    return R_NilValue;
+}
 // SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
 //                SEXP nvars2, SEXP x2, SEXP r2, SEXP v2, SEXP intr2, SEXP ju2,
 //                SEXP vp2, SEXP cl2, SEXP nx2, SEXP thr2, SEXP maxit2, SEXP a2,

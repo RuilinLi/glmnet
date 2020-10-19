@@ -402,3 +402,26 @@ void PlinkMatrix::get_info(int j, const double* weights, uint32_t sample_ct,
 
 uint32_t PlinkMatrix::get_no(){return _subset_size;}
 uintptr_t PlinkMatrix::get_ni(){return _vsubset_size;}
+
+void PlinkMatrix::multiply_vector(const double *v, double * r)
+{
+   if (!malloc_all) {
+        stop("Must load the input matrix before calling this function\n");
+    }
+
+    for(int j = 0; j < _vsubset_size; ++j)
+    {
+        plink2::update_res2_raw(compactM[j], v[j], r, _subset_size, xm[j], xs[j]);
+    }
+    return;
+}
+
+void PlinkMatrix::setxm(const double *xm2)
+{
+    memcpy(xm, xm2, sizeof(double)*_vsubset_size);
+}
+
+void PlinkMatrix::setxs(const double *xs2)
+{
+    memcpy(xs, xs2, sizeof(double)*_vsubset_size);
+}

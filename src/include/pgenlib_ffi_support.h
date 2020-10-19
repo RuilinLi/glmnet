@@ -78,6 +78,8 @@ double genoarrproduct(const uintptr_t* genoarrx, const uintptr_t* genoarry, uint
 
 void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
                             double *__restrict r, uint32_t sample_ct, double mu, double sigma);
+void update_res2_raw(const uintptr_t* genoarr, double d,
+                            double * r, uint32_t sample_ct, double mu, double sigma);
 void get_info(const uintptr_t* genoarr, const double *weights, uint32_t sample_ct, double* rbuf);
 HEADER_INLINE void Dosage16ToDoublesMinus9(const uintptr_t* genoarr, const uintptr_t* dosage_present, const uint16_t* dosage_main, uint32_t sample_ct, uint32_t dosage_ct, double* geno_double) {
   Dosage16ToDoubles(kGenoDoublePairs, genoarr, dosage_present, dosage_main, sample_ct, dosage_ct, geno_double);

@@ -63,11 +63,15 @@ class PlinkMatrix : public MatrixGlmnet {
 
     uint32_t get_no();
     uintptr_t get_ni();
-
-
+    // Compute matrix-vector multiplication r = r + X * v
+    void multiply_vector(const double *v, double * r);
+    void setxm(const double *xm2);
+    void setxs(const double *xs2);
+double* xm;
+double* xs;
    private:
-    double* xm;  // Column means; Only computed if centering, otherwise set to 0
-    double* xs;  // Column standard deviation; Only computed if standardize,
+    //double* xm;  // Column means; Only computed if centering, otherwise set to 0
+    //double* xs;  // Column standard deviation; Only computed if standardize,
                  // otherwise set to 1
     uintptr_t** compactM;
     plink2::PgenFileInfo* _info_ptr;

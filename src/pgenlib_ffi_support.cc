@@ -478,7 +478,7 @@ void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
     // This can be skipped if no missing data
     STD_ARRAY_DECL(uint32_t, 4, genocounts);
     GenoarrCountFreqsUnsafe(genoarr, sample_ct, genocounts);
-    const double numer = u63tod(genocounts[1] + 4.0 * genocounts[2]);
+    const double numer = u63tod(genocounts[1] + 2.0 * genocounts[2]);
     const double denom = u31tod(sample_ct - genocounts[3]);
     const double xmean = numer/denom;
 
@@ -518,6 +518,59 @@ void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
     while (geno_missing_word) {
       const uint32_t sample_idx_lowbits = ctzw(geno_missing_word) / 2;
       cur_r[sample_idx_lowbits] -= d * cur_weights[sample_idx_lowbits] * vmissing;
+      geno_missing_word &= geno_missing_word - 1;
+    }
+  }
+  return;
+  }
+
+// Too similar to the above... 
+// Compute r_i = r_i + d *  (x_i - mu)/sigma
+void update_res2_raw(const uintptr_t* genoarr, double d,
+                            double * r, uint32_t sample_ct, double mu, double sigma)
+  {
+    // This can be skipped if no missing data
+    STD_ARRAY_DECL(uint32_t, 4, genocounts);
+    GenoarrCountFreqsUnsafe(genoarr, sample_ct, genocounts);
+    const double numer = u63tod(genocounts[1] + 2.0 * genocounts[2]);
+    const double denom = u31tod(sample_ct - genocounts[3]);
+    const double xmean = numer/denom;
+
+    const uint32_t word_ct = DivUp(sample_ct, kBitsPerWordD2);
+    const uint32_t trailingNyps_ct = kBitsPerWordD2 * word_ct - sample_ct;
+    const double v0 = -mu/sigma;
+    const double v1= (1 - mu)/sigma;
+    const double v2= (2 - mu)/sigma;
+    const double vmissing = (xmean - mu)/sigma;
+
+  for (uint32_t widx = 0; widx != word_ct; ++widx) {
+    const uintptr_t geno_word = genoarr[widx];
+    double* cur_r = &(r[widx * kBitsPerWordD2]);
+    uintptr_t geno_word1 = geno_word & kMask5555;
+    uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
+    uintptr_t geno_word0 = (~geno_word1) & (~geno_word2) & kMask5555;
+    plink2::ZeroTrailingNyps((widx == (word_ct - 1)) * trailingNyps_ct, &geno_word0);
+    uintptr_t geno_missing_word = geno_word1 & geno_word2;
+    while (geno_word0) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_word0) / 2;
+      cur_r[sample_idx_lowbits] += d * v0;
+      geno_word0 &= geno_word0 - 1;
+    }
+    geno_word1 ^= geno_missing_word;
+    while (geno_word1) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_word1) / 2;
+      cur_r[sample_idx_lowbits] += d * v1;
+      geno_word1 &= geno_word1 - 1;
+    }
+    geno_word2 ^= geno_missing_word;
+    while (geno_word2) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_word2) / 2;
+      cur_r[sample_idx_lowbits] += d * v2;
+      geno_word2 &= geno_word2 - 1;
+    }
+    while (geno_missing_word) {
+      const uint32_t sample_idx_lowbits = ctzw(geno_missing_word) / 2;
+      cur_r[sample_idx_lowbits] += d * vmissing;
       geno_missing_word &= geno_missing_word - 1;
     }
   }
