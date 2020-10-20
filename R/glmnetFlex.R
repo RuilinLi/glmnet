@@ -921,40 +921,10 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
     thr <- as.double(thresh)
     v <- as.double(weights)
 
-    # take out components of x and run FORTRAN subroutine
-    # if (inherits(x, "sparseMatrix")) {
-    #     xm <- as.double(attr(x, "xm"))
-    #     xs <- as.double(attr(x, "xs"))
-    #     ix <- as.integer(x@p + 1)
-    #     jx <- as.integer(x@i + 1)
-    #     x <- as.double(x@x)
-    #     wls_fit <- .Fortran("spwls",
-    #                         alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-    #                         x=x,ix=ix,jx=jx,xm=xm,xs=xs,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-    #                         maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-    #                         nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
-    # } else if('plink' %in% class(x)){
-    #     wls_fit <- wls_plink_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-    #                              x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-    #                              maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-    #                              nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
-        
-    # } else {
-    #     x <- as.double(x)
-    #     # wls_fit <- .Fortran("wls",
-    #     #                     alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-    #     #                     x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-    #     #                     maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-    #     #                     nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
-    #     wls_fit <- wls_dense_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-    #                               x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-    #                               maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-    #                               nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
-    # }
+    # take out components of x and run C subroutine
     wls_fit <- wlsFlex(x, alm0, almc, alpha, m, nobs, 
     nvars, r, v, intr, ju, vp, cl, nx, thr, maxit, a, aint, g, ia, iy, iz, mm, nino, 
     rsqc, nlp, jerr)
-    print("Done!")
 
     # if error code > 0, fatal error occurred: stop immediately
     # if error code < 0, non-fatal error occurred: return error code

@@ -2,10 +2,14 @@ library(glmnet)
 library(pgenlibr)
 rm(list=ls())
 set.seed(1)
-n = 200
-p = 200
+n = 100
+p = 100
 sample_subset = 1:n
 vsubset = 1:p
+sample_subset = sample_subset[-15]
+vsubset = vsubset[-9]
+n = n - 1
+p = p - 1
 
 beta = rbinom(p,1,0.3) * rnorm(p)
 
@@ -41,11 +45,12 @@ fit_plink = glmnet(a, y, family = gaussian(), lambda=lam, standardize = T, inter
 
 X = center(X, rep(1.0, n))
 X = X$x
+X = standardize(X,rep(1.0, n))
+X = X$x
 max(abs(drop(X%*% y2) - a %*% y2))
 max(abs(drop(z %*% X) - z %*% a))
 
 
-fit_plink$beta
 
 me_dense = max(abs( fit_dense$beta -  fit_ref$beta))
 me_sparse = max(abs(fit_sparse$beta -  fit_ref$beta))

@@ -238,9 +238,6 @@ void PlinkMatrix::Close() {
         _state_ptr = nullptr;
     }
     if (malloc_all) {
-        for (uint32_t i = 0; i != _vsubset_size; ++i) {
-            free(compactM[i]);
-        }
         free(compactM);
         free(xm);
         free(xs);
@@ -308,19 +305,15 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
     // assume that buf has the correct dimensions
     const uint32_t raw_variant_ct = _info_ptr->raw_variant_ct;
 
-    compactM = (uintptr_t**)malloc(sizeof(uintptr_t*) * vsubset_size);
+    const uint32_t word_ct = plink2::DivUp(_subset_size, plink2::kBitsPerWordD2);
+    const uint32_t byte_ct = word_ct * plink2::kBytesPerWord;
+
+    compactM = (uintptr_t*)malloc(byte_ct * vsubset_size);
     if (!compactM) {
         stop("out of memory\n");
     }
-    const uint32_t byte_ct =
-        plink2::DivUp(_subset_size, plink2::kBitsPerWordD2) *
-        plink2::kBytesPerWord;
 
     for (uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx) {
-        compactM[col_idx] = (uintptr_t*)malloc(byte_ct);
-        if (!compactM[col_idx]) {
-            stop("out of memory\n");
-        }
 
         uint32_t variant_idx = variant_subset[col_idx] - 1;
         if (static_cast<uint32_t>(variant_idx) >= raw_variant_ct) {
@@ -333,8 +326,9 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
         plink2::PglErr reterr =
             PgrGet(_subset_include_vec, _subset_index, _subset_size,
                    variant_idx, _state_ptr, _pgv.genovec);
-        memcpy(compactM[col_idx], _pgv.genovec, byte_ct);
-        plink2::ZeroTrailingNyps(_subset_size, compactM[col_idx]);
+        uintptr_t* col_pointer = &(compactM[col_idx*word_ct]);
+        memcpy(col_pointer, _pgv.genovec, byte_ct);
+        plink2::ZeroTrailingNyps(_subset_size, col_pointer);
         if (reterr != plink2::kPglRetSuccess) {
             char errstr_buf[256];
             sprintf(errstr_buf, "PgrGet() error %d", static_cast<int>(reterr));
@@ -360,11 +354,11 @@ double PlinkMatrix::dot_product(int j, const double* v) {
     if (j > _vsubset_size - 1) {
         stop("Column out of range\n");
     }
+    const uint32_t word_ct = plink2::DivUp(_subset_size, plink2::kBitsPerWordD2);
 
     double result = plink2::LinearCombinationMeanimpute(
-        v, compactM[j], nullptr, nullptr, _subset_size, 0, xm[j]);
+        v, &(compactM[j*word_ct]), nullptr, nullptr, _subset_size, 0, xm[j]);
 
-    
     result /= xs[j];
     return result;
 }
@@ -386,19 +380,22 @@ double PlinkMatrix::vx2(int j, const double* v) {
     if (j > _vsubset_size - 1) {
         stop("Column out of range\n");
     }
+    const uint32_t word_ct = plink2::DivUp(_subset_size, plink2::kBitsPerWordD2);
     double result =
-        plink2::LinearCombinationSquare(v, compactM[j], _subset_size, xm[j]);
+        plink2::LinearCombinationSquare(v, &(compactM[j*word_ct]), _subset_size, xm[j]);
     result /= (xs[j] * xs[j]);
     return result;
 }
 
 void PlinkMatrix::update_res(int j, double d, const double* v, double* r) {
-    plink2::update_res_raw(compactM[j], d, v, r, _subset_size, xm[j], xs[j]);
+    const uint32_t word_ct = plink2::DivUp(_subset_size, plink2::kBitsPerWordD2);
+    plink2::update_res_raw(&(compactM[j*word_ct]), d, v, r, _subset_size, xm[j], xs[j]);
 }
 
 void PlinkMatrix::get_info(int j, const double* weights, uint32_t sample_ct,
                            double* rbuf) {
-    plink2::get_info(compactM[j], weights, sample_ct, rbuf);
+                               const uint32_t word_ct = plink2::DivUp(_subset_size, plink2::kBitsPerWordD2);
+    plink2::get_info(&(compactM[j*word_ct]), weights, sample_ct, rbuf);
 }
 
 uint32_t PlinkMatrix::get_no() { return _subset_size; }
@@ -408,9 +405,10 @@ void PlinkMatrix::multiply_vector(const double* v, double* r) {
     if (!malloc_all) {
         stop("Must load the input matrix before calling this function\n");
     }
+    const uint32_t word_ct = plink2::DivUp(_subset_size, plink2::kBitsPerWordD2);
 
     for (int j = 0; j < _vsubset_size; ++j) {
-        plink2::update_res2_raw(compactM[j], v[j], r, _subset_size, xm[j],
+        plink2::update_res2_raw(&(compactM[j*word_ct]), v[j], r, _subset_size, xm[j],
                                 xs[j]);
     }
     return;
@@ -428,7 +426,7 @@ void PlinkMatrix::pre_multiply_vector(const double* v, double* r) {
     if (!malloc_all) {
         stop("Must load the input matrix before calling this function\n");
     }
-    for (int j = 0; j < _vsubset_size; ++j) {;
+    for (int j = 0; j < _vsubset_size; ++j) {
         r[j] = this->dot_product(j, v);
     }
 }

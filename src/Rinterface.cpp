@@ -246,14 +246,12 @@ SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
 SEXP PlinkSetMean(SEXP ptr2, SEXP xm2) {
     PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
     p->setxm(REAL(xm2));
-    Rprintf("The last xm is %f", p->xm[199]);
     return R_NilValue;
 }
 
 SEXP PlinkSetSd(SEXP ptr2, SEXP xs2) {
     PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
     p->setxs(REAL(xs2));
-    Rprintf("The last xs is %f", p->xs[199]);
     return R_NilValue;
 }
 

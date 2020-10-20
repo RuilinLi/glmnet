@@ -75,7 +75,7 @@ double* xs;
     //double* xm;  // Column means; Only computed if centering, otherwise set to 0
     //double* xs;  // Column standard deviation; Only computed if standardize,
                  // otherwise set to 1
-    uintptr_t** compactM;
+    uintptr_t* compactM;
     plink2::PgenFileInfo* _info_ptr;
     plink2::RefcountedWptr* _allele_idx_offsetsp;
     plink2::RefcountedWptr* _nonref_flagsp;
