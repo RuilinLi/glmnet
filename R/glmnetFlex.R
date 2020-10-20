@@ -133,10 +133,18 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
     if(is.null(vnames))vnames=paste("V",seq(nvars),sep="")
 
     # check weights
-    if(is.null(weights)) weights = rep(1,nobs)
-    else if (length(weights) != nobs)
+    if(inherits(x, "PlinkMatrix")) {
+        if(!is.null(weights)) {
+            warning("The weights for PlinkMatrix should be passed when constructing the matrix, it is overwritten here")
+        }
+        weights <- attr(x, "weights")
+    } else if (is.null(weights)){
+        weights <- rep(1,nobs)
+    } else if (length(weights) != nobs){
         stop(paste("Number of elements in weights (",length(weights),
                    ") not equal to the number of rows of x (",nobs,")",sep=""))
+    }
+
     weights <- as.double(weights)
 
     ## initialize from family function. Makes y a vector in case of binomial, and possibly changes weights
@@ -168,7 +176,7 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
     vp = as.double(vp * nvars / sum(vp))
 
     # if all the non-excluded variables have zero variance, throw error
-    nzvar <- setdiff(which(apply(x, 2, max) != apply(x, 2, min)), exclude)
+    nzvar <- setdiff(which(colmax(x) != colmin(x)), exclude)
     if (length(nzvar) == 0) stop("All used predictors have zero variance")
 
     ### check on limits
@@ -203,23 +211,30 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
     ### end preparation of generic arguments
 
     # standardize x if necessary
-    if (intercept) {
-        xm <- apply(x, 2, function(r) weighted.mean(r, weights))
+
+    if(intercept) {
+        tmp <- center(x, weights)
+        x <- tmp$x
+        xm <- tmp$xm
     } else {
         xm <- rep(0.0, times = nvars)
+        if(inherits(x, "sparseMatrix")) {
+            attr(x, 'xm') <- xm
+        }
     }
+
     if (standardize) {
-        xs <- apply(x, 2, function(r) sqrt(weighted.mean(r^2, weights) -
-                                               weighted.mean(r, weights)^2))
+        tmp <- standardize(x, weights)
+        x <- tmp$x
+        xs <- tmp$xs
     } else {
         xs <- rep(1.0, times = nvars)
+                xm <- rep(0.0, times = nvars)
+        if(inherits(x, "sparseMatrix")) {
+            attr(x, 'xs') <- xs
+        }
     }
-    if (!inherits(x, "sparseMatrix")) {
-        x <- t((t(x) - xm) / xs)
-    } else {
-        attr(x, "xm") <- xm
-        attr(x, "xs") <- xs
-    }
+
     lower.limits <- lower.limits * xs
     upper.limits <- upper.limits * xs
 
@@ -848,7 +863,8 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
             vp <- as.double(penalty.factor)
         }
         # compute ju
-        ju <- apply(x, 2, function(x) 1 - (max(x) == min(x)) * 1)
+        ju <- 1 - (colmax(x) == colmin(x)) * 1
+        # apply(x, 2, function(x) 1 - (max(x) == min(x)) * 1)
         ju[exclude] <- 0
         ju <- as.integer(ju)
 
@@ -906,35 +922,39 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
     v <- as.double(weights)
 
     # take out components of x and run FORTRAN subroutine
-    if (inherits(x, "sparseMatrix")) {
-        xm <- as.double(attr(x, "xm"))
-        xs <- as.double(attr(x, "xs"))
-        ix <- as.integer(x@p + 1)
-        jx <- as.integer(x@i + 1)
-        x <- as.double(x@x)
-        wls_fit <- .Fortran("spwls",
-                            alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-                            x=x,ix=ix,jx=jx,xm=xm,xs=xs,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-                            maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-                            nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
-    } else if('plink' %in% class(x)){
-        wls_fit <- wls_plink_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-                                 x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-                                 maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-                                 nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
+    # if (inherits(x, "sparseMatrix")) {
+    #     xm <- as.double(attr(x, "xm"))
+    #     xs <- as.double(attr(x, "xs"))
+    #     ix <- as.integer(x@p + 1)
+    #     jx <- as.integer(x@i + 1)
+    #     x <- as.double(x@x)
+    #     wls_fit <- .Fortran("spwls",
+    #                         alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
+    #                         x=x,ix=ix,jx=jx,xm=xm,xs=xs,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
+    #                         maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
+    #                         nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
+    # } else if('plink' %in% class(x)){
+    #     wls_fit <- wls_plink_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
+    #                              x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
+    #                              maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
+    #                              nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
         
-    } else {
-        x <- as.double(x)
-        # wls_fit <- .Fortran("wls",
-        #                     alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-        #                     x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-        #                     maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-        #                     nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
-        wls_fit <- wls_dense_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
-                                  x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
-                                  maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
-                                  nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
-    }
+    # } else {
+    #     x <- as.double(x)
+    #     # wls_fit <- .Fortran("wls",
+    #     #                     alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
+    #     #                     x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
+    #     #                     maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
+    #     #                     nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
+    #     wls_fit <- wls_dense_cpp(alm0=alm0,almc=almc,alpha=alpha,m=m,no=nobs,ni=nvars,
+    #                               x=x,r=r,v=v,intr=intr,ju=ju,vp=vp,cl=cl,nx=nx,thr=thr,
+    #                               maxit=maxit,a=a,aint=aint,g=g,ia=ia,iy=iy,iz=iz,mm=mm,
+    #                               nino=nino,rsqc=rsqc,nlp=nlp,jerr=jerr)
+    # }
+    wls_fit <- wlsFlex(x, alm0, almc, alpha, m, nobs, 
+    nvars, r, v, intr, ju, vp, cl, nx, thr, maxit, a, aint, g, ia, iy, iz, mm, nino, 
+    rsqc, nlp, jerr)
+    print("Done!")
 
     # if error code > 0, fatal error occurred: stop immediately
     # if error code < 0, non-fatal error occurred: return error code
@@ -1017,7 +1037,7 @@ get_start <- function(x, y, weights, family, intercept, is.offset, offset,
 
     # if some penalty factors are zero, we have to recompute mu
     vp_zero <- setdiff(which(vp == 0), exclude)
-    if (length(vp_zero) > 0) {
+    if (length(vp_zero) > 0 && (!inherits(x, 'PlinkMatrix'))) {
         tempx <- x[, vp_zero, drop = FALSE]
         if (intercept) {
             tempx <- cbind(tempx, 1)
@@ -1027,7 +1047,7 @@ get_start <- function(x, y, weights, family, intercept, is.offset, offset,
     }
 
     # compute lambda max
-    ju <- apply(x, 2, function(x) 1 - (max(x) == min(x)) * 1)
+    ju <- 1 - (colmax(x) == colmin(x)) * 1
     ju[exclude] <- 0
     r <- y - mu
     eta <- family$linkfun(mu)
@@ -1037,12 +1057,14 @@ get_start <- function(x, y, weights, family, intercept, is.offset, offset,
     if (inherits(x, "sparseMatrix")) {
         xm <- attr(x, "xm")
         xs <- attr(x, "xs")
-        g <- unlist(lapply(1:nvars, function(j)
-            abs((sum(r / v * m.e * x[, j] * weights) -
-                     sum(r / v * m.e * weights) * xm[j]) / xs[j]))) * ju / ifelse(vp > 0, vp, 1)
+        weighted_r <- drop(r / v * m.e * weights)
+        weighted_r_sum <- sum(weighted_r)
+        g <- abs(drop(weighted_r %*% x) - weighted_r_sum*xm)/xs * ju / ifelse(vp > 0, vp, 1)
+
     } else {
-        g <- unlist(lapply(1:nvars, function(j)
-            abs(sum(r / v * m.e * x[, j] * weights)))) * ju / ifelse(vp > 0, vp, 1)
+        weighted_r <- drop(r / v * m.e * weights)
+        g <- drop(abs(weighted_r %*% x)) * ju / ifelse(vp > 0, vp, 1)
+
     }
 
     lambda_max <- max(g) / max(alpha, 1e-3)

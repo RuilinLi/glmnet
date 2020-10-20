@@ -65,6 +65,8 @@ class PlinkMatrix : public MatrixGlmnet {
     uintptr_t get_ni();
     // Compute matrix-vector multiplication r = r + X * v
     void multiply_vector(const double *v, double * r);
+    // Set r = X^Tv
+    void pre_multiply_vector(const double *v, double * r);
     void setxm(const double *xm2);
     void setxs(const double *xs2);
 double* xm;

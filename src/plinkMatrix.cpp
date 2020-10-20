@@ -341,15 +341,13 @@ void PlinkMatrix::ReadCompact(int* variant_subset,
             stop(errstr_buf);
         }
     }
-    xm = (double*)malloc(sizeof(double)*vsubset_size);
-    xs = (double*)malloc(sizeof(double)*vsubset_size);
-    if(!xs)
-    {
+    xm = (double*)malloc(sizeof(double) * vsubset_size);
+    xs = (double*)malloc(sizeof(double) * vsubset_size);
+    if (!xs) {
         stop("out of memory\n");
     }
     malloc_all = true;
-    for(uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx)
-    {
+    for (uintptr_t col_idx = 0; col_idx != vsubset_size; ++col_idx) {
         xm[col_idx] = 0.0;
         xs[col_idx] = 1.0;
     }
@@ -363,8 +361,10 @@ double PlinkMatrix::dot_product(int j, const double* v) {
         stop("Column out of range\n");
     }
 
-    double result = plink2::LinearCombinationMeanimpute(v, compactM[j], nullptr, nullptr,
-                                               _subset_size, 0, xm[j]);
+    double result = plink2::LinearCombinationMeanimpute(
+        v, compactM[j], nullptr, nullptr, _subset_size, 0, xm[j]);
+
+    
     result /= xs[j];
     return result;
 }
@@ -386,7 +386,8 @@ double PlinkMatrix::vx2(int j, const double* v) {
     if (j > _vsubset_size - 1) {
         stop("Column out of range\n");
     }
-    double result = plink2::LinearCombinationSquare(v, compactM[j], _subset_size, xm[j]);
+    double result =
+        plink2::LinearCombinationSquare(v, compactM[j], _subset_size, xm[j]);
     result /= (xs[j] * xs[j]);
     return result;
 }
@@ -400,28 +401,34 @@ void PlinkMatrix::get_info(int j, const double* weights, uint32_t sample_ct,
     plink2::get_info(compactM[j], weights, sample_ct, rbuf);
 }
 
-uint32_t PlinkMatrix::get_no(){return _subset_size;}
-uintptr_t PlinkMatrix::get_ni(){return _vsubset_size;}
+uint32_t PlinkMatrix::get_no() { return _subset_size; }
+uintptr_t PlinkMatrix::get_ni() { return _vsubset_size; }
 
-void PlinkMatrix::multiply_vector(const double *v, double * r)
-{
-   if (!malloc_all) {
+void PlinkMatrix::multiply_vector(const double* v, double* r) {
+    if (!malloc_all) {
         stop("Must load the input matrix before calling this function\n");
     }
 
-    for(int j = 0; j < _vsubset_size; ++j)
-    {
-        plink2::update_res2_raw(compactM[j], v[j], r, _subset_size, xm[j], xs[j]);
+    for (int j = 0; j < _vsubset_size; ++j) {
+        plink2::update_res2_raw(compactM[j], v[j], r, _subset_size, xm[j],
+                                xs[j]);
     }
     return;
 }
 
-void PlinkMatrix::setxm(const double *xm2)
-{
-    memcpy(xm, xm2, sizeof(double)*_vsubset_size);
+void PlinkMatrix::setxm(const double* xm2) {
+    memcpy(xm, xm2, sizeof(double) * _vsubset_size);
 }
 
-void PlinkMatrix::setxs(const double *xs2)
-{
-    memcpy(xs, xs2, sizeof(double)*_vsubset_size);
+void PlinkMatrix::setxs(const double* xs2) {
+    memcpy(xs, xs2, sizeof(double) * _vsubset_size);
+}
+
+void PlinkMatrix::pre_multiply_vector(const double* v, double* r) {
+    if (!malloc_all) {
+        stop("Must load the input matrix before calling this function\n");
+    }
+    for (int j = 0; j < _vsubset_size; ++j) {;
+        r[j] = this->dot_product(j, v);
+    }
 }

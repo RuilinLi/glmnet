@@ -11,6 +11,7 @@
 extern SEXP initialize_plinkmatrix_Xptr(SEXP, SEXP, SEXP);
 extern SEXP PlinkMatrix_info(SEXP, SEXP);
 extern SEXP PlinkMultiplyv(SEXP, SEXP, SEXP);
+extern SEXP PlinkPreMultiplyv(SEXP, SEXP, SEXP);
 extern SEXP PlinkSetMean(SEXP, SEXP);
 extern SEXP PlinkSetSd(SEXP, SEXP);
 extern SEXP storePB(SEXP);
@@ -48,6 +49,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"initialize_plinkmatrix_Xptr", (DL_FUNC) &initialize_plinkmatrix_Xptr,  3},
     {"PlinkMatrix_info",            (DL_FUNC) &PlinkMatrix_info,             2},
     {"PlinkMultiplyv",              (DL_FUNC) &PlinkMultiplyv,               3},
+    {"PlinkPreMultiplyv",           (DL_FUNC) &PlinkPreMultiplyv,            3},
     {"PlinkSetMean",                (DL_FUNC) &PlinkSetMean,                 2},
     {"PlinkSetSd",                  (DL_FUNC) &PlinkSetSd,                   2},
     {"storePB",                     (DL_FUNC) &storePB,                      1},

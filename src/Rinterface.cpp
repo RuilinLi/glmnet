@@ -139,8 +139,7 @@ class Wls_Solver_Dense : public Wls_Solver {
 
 class Wls_Solver_Plink : public Wls_Solver {
    private:
-    PlinkMatrix X;
-    SEXP xr;
+    PlinkMatrix *X;
     bool already_solved;
 
    public:
@@ -153,7 +152,7 @@ class Wls_Solver_Plink : public Wls_Solver {
         : Wls_Solver(alm02, almc2, alpha2, m2, nobs2, nvars2, x2, r2, v2, intr2,
                      ju2, vp2, cl2, nx2, thr2, maxit2, a2, aint2, g2, ia2, iy2,
                      iz2, mm2, nino2, rsqc2, nlp2, jerr2) {
-        xr = x2;
+        X = (PlinkMatrix *)R_ExternalPtrAddr(x2);
         already_solved = false;
     }
 
@@ -162,16 +161,8 @@ class Wls_Solver_Plink : public Wls_Solver {
             // Do nothing
             return;
         }
-        const char *fname = CHAR(STRING_ELT(VECTOR_ELT(xr, 0), 0));
-        int *sample_subset = INTEGER(VECTOR_ELT(xr, 1));
-        const uint32_t subset_size = length(VECTOR_ELT(xr, 1));
-        int *vsubset = INTEGER(VECTOR_ELT(xr, 2));
-        const uintptr_t vsubset_size = length(VECTOR_ELT(xr, 2));
 
-        X.Load(fname, UINT32_MAX, sample_subset, subset_size);
-        X.ReadCompact(vsubset, vsubset_size);
-
-        wls_base(alm0, almc, alpha, m, no, ni, &X, r, v, intr, ju, vp, cl, nx,
+        wls_base(alm0, almc, alpha, m, no, ni, X, r, v, intr, ju, vp, cl, nx,
                  thr, maxit, a, aint, g, ia, iy, iz, mm, nino, rsqc, nlp, jerr);
         already_solved = true;
     }
@@ -198,7 +189,6 @@ SEXP initialize_plinkmatrix_Xptr(SEXP fname2, SEXP sample_subset2,
 }
 
 SEXP PlinkMatrix_info(SEXP ptr2, SEXP weight2) {
-
     PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
     const double *weight = REAL(weight2);
     const uint32_t subset_size = length(weight2);
@@ -225,7 +215,6 @@ SEXP PlinkMatrix_info(SEXP ptr2, SEXP weight2) {
 
     UNPROTECT(5);
     return result;
-
 }
 
 SEXP wls_plink(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
@@ -254,24 +243,29 @@ SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
     return Solver.get_result();
 }
 
-SEXP PlinkSetMean(SEXP ptr2, SEXP xm2)
-{
+SEXP PlinkSetMean(SEXP ptr2, SEXP xm2) {
     PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
     p->setxm(REAL(xm2));
+    Rprintf("The last xm is %f", p->xm[199]);
     return R_NilValue;
 }
 
-SEXP PlinkSetSd(SEXP ptr2, SEXP xs2)
-{
+SEXP PlinkSetSd(SEXP ptr2, SEXP xs2) {
     PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
     p->setxs(REAL(xs2));
+    Rprintf("The last xs is %f", p->xs[199]);
     return R_NilValue;
 }
 
-SEXP PlinkMultiplyv(SEXP ptr2, SEXP v2, SEXP r2)
-{
+SEXP PlinkMultiplyv(SEXP ptr2, SEXP v2, SEXP r2) {
     PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
     p->multiply_vector(REAL(v2), REAL(r2));
+    return R_NilValue;
+}
+
+SEXP PlinkPreMultiplyv(SEXP ptr2, SEXP v2, SEXP r2) {
+    PlinkMatrix *p = (PlinkMatrix *)R_ExternalPtrAddr(ptr2);
+    p->pre_multiply_vector(REAL(v2), REAL(r2));
     return R_NilValue;
 }
 // SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,

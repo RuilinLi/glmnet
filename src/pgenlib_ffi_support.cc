@@ -247,7 +247,7 @@ BoolErr Dosage16ToDoublesMeanimpute(const uintptr_t* genoarr, const uintptr_t* d
 // Compute sum (x_i - mu) * v_i
 double LinearCombinationMeanimpute(const double* weights, const uintptr_t* genoarr, const uintptr_t* dosage_present, const uint16_t* dosage_main, uint32_t sample_ct, uint32_t dosage_ct, double mu) {
   const uint32_t word_ct = DivUp(sample_ct, kBitsPerWordD2);
-  const uint32_t trailingNyps_ct = kBitsPerWordD2 * word_ct - sample_ct;
+  const uint32_t trailingNyps_keep = sample_ct - kBitsPerWordD2 * (word_ct - 1);
   double result0 = 0.0;
   double result = 0.0;
   double result2 = 0.0;
@@ -259,7 +259,10 @@ double LinearCombinationMeanimpute(const double* weights, const uintptr_t* genoa
       uintptr_t geno_word1 = geno_word & kMask5555;
       uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
       uintptr_t geno_word0 = (~geno_word1) & (~geno_word2) & kMask5555;
-      plink2::ZeroTrailingNyps((widx == (word_ct - 1)) * trailingNyps_ct, &geno_word0);
+      if(widx == (word_ct - 1)) {
+        plink2::ZeroTrailingNyps(trailingNyps_keep, &geno_word0);
+      }
+
       uintptr_t geno_missing_word = geno_word1 & geno_word2;
       while (geno_word0) {
         const uint32_t sample_idx_lowbits = ctzw(geno_word0) / 2;
@@ -363,7 +366,7 @@ double LinearCombinationMeanimpute(const double* weights, const uintptr_t* genoa
 // This function comptues sum (x_i - mu)^2 * v_i
 double LinearCombinationSquare(const double* weights, const uintptr_t* genoarr, uint32_t sample_ct, double mu) {
   const uint32_t word_ct = DivUp(sample_ct, kBitsPerWordD2);
-  const uint32_t trailingNyps_ct = kBitsPerWordD2 * word_ct - sample_ct;
+  const uint32_t trailingNyps_keep = sample_ct - kBitsPerWordD2 * (word_ct - 1);
   double result0 = 0.0;
   double result = 0.0;
   double result2 = 0.0;
@@ -375,7 +378,9 @@ double LinearCombinationSquare(const double* weights, const uintptr_t* genoarr, 
     uintptr_t geno_word1 = geno_word & kMask5555;
     uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
     uintptr_t geno_word0 = (~geno_word1) & (~geno_word2) & kMask5555;
-    plink2::ZeroTrailingNyps((widx == (word_ct - 1)) * trailingNyps_ct, &geno_word0);
+    if(widx == (word_ct - 1)) {
+      plink2::ZeroTrailingNyps(trailingNyps_keep, &geno_word0);
+    }
     uintptr_t geno_missing_word = geno_word1 & geno_word2;
     while (geno_word0) {
       const uint32_t sample_idx_lowbits = ctzw(geno_word0) / 2;
@@ -483,7 +488,7 @@ void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
     const double xmean = numer/denom;
 
     const uint32_t word_ct = DivUp(sample_ct, kBitsPerWordD2);
-    const uint32_t trailingNyps_ct = kBitsPerWordD2 * word_ct - sample_ct;
+    const uint32_t trailingNyps_keep = sample_ct - kBitsPerWordD2 * (word_ct - 1);
     const double v0 = -mu/sigma;
     const double v1= (1 - mu)/sigma;
     const double v2= (2 - mu)/sigma;
@@ -496,7 +501,9 @@ void update_res_raw(const uintptr_t* genoarr, double d, const double *weights,
     uintptr_t geno_word1 = geno_word & kMask5555;
     uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
     uintptr_t geno_word0 = (~geno_word1) & (~geno_word2) & kMask5555;
-    plink2::ZeroTrailingNyps((widx == (word_ct - 1)) * trailingNyps_ct, &geno_word0);
+    if(widx == (word_ct - 1)) {
+      plink2::ZeroTrailingNyps(trailingNyps_keep, &geno_word0);
+    }
     uintptr_t geno_missing_word = geno_word1 & geno_word2;
     while (geno_word0) {
       const uint32_t sample_idx_lowbits = ctzw(geno_word0) / 2;
@@ -537,7 +544,7 @@ void update_res2_raw(const uintptr_t* genoarr, double d,
     const double xmean = numer/denom;
 
     const uint32_t word_ct = DivUp(sample_ct, kBitsPerWordD2);
-    const uint32_t trailingNyps_ct = kBitsPerWordD2 * word_ct - sample_ct;
+    const uint32_t trailingNyps_keep = sample_ct - kBitsPerWordD2 * (word_ct - 1);
     const double v0 = -mu/sigma;
     const double v1= (1 - mu)/sigma;
     const double v2= (2 - mu)/sigma;
@@ -549,7 +556,9 @@ void update_res2_raw(const uintptr_t* genoarr, double d,
     uintptr_t geno_word1 = geno_word & kMask5555;
     uintptr_t geno_word2 = (geno_word >> 1) & kMask5555;
     uintptr_t geno_word0 = (~geno_word1) & (~geno_word2) & kMask5555;
-    plink2::ZeroTrailingNyps((widx == (word_ct - 1)) * trailingNyps_ct, &geno_word0);
+    if(widx == (word_ct - 1)) {
+      plink2::ZeroTrailingNyps(trailingNyps_keep, &geno_word0);
+    }
     uintptr_t geno_missing_word = geno_word1 & geno_word2;
     while (geno_word0) {
       const uint32_t sample_idx_lowbits = ctzw(geno_word0) / 2;
