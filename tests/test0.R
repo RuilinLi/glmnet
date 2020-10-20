@@ -37,6 +37,8 @@ a = glmnet::PlinkMatrix("/Users/ruilinli/plink-ng/toy_data.pgen", sample_subset,
 
 fit_plink = glmnet(a, y, family = gaussian(),  standardize = T, intercept = T)
 
+y2 = rnorm(p)
+z = rnorm(n)
 
 X = center(X, rep(1.0, n))
 X = X$x
