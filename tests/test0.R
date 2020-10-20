@@ -23,7 +23,8 @@ lam = 0.12190
 fit_ref = glmnet(X, y, family = 'gaussian', lambda=lam, standardize = T, intercept = T)
 
 # Dense
-fit_dense = glmnet(X, y, family = gaussian(), lambda=lam, standardize = T, intercept = T)
+#fit_dense = glmnet(X, y, family = gaussian(), lambda=lam, standardize = T, intercept = T)
+fit_dense = glmnet(X, y, family = gaussian(), standardize = T, intercept = T)
 
 # Sparse
 Xs = as(X, 'sparseMatrix')
@@ -34,13 +35,7 @@ fit_sparse = glmnet(Xs, y, family = gaussian(), lambda=lam, standardize = T, int
 a = glmnet::PlinkMatrix("/Users/ruilinli/plink-ng/toy_data.pgen", sample_subset, vsubset)
 
 
-y2 = rnorm(p)
-z = rnorm(n)
-
-max(abs(drop(X%*% y2) - a %*% y2))
-max(abs(drop(z %*% X) - z %*% a))
-
-fit_plink = glmnet(a, y, family = gaussian(), lambda=lam, standardize = T, intercept = T)
+fit_plink = glmnet(a, y, family = gaussian(),  standardize = T, intercept = T)
 
 
 X = center(X, rep(1.0, n))
