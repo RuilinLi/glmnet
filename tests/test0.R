@@ -2,8 +2,8 @@ library(glmnet)
 library(pgenlibr)
 rm(list=ls())
 set.seed(1)
-n = 100
-p = 100
+n = 1000
+p = 1000
 sample_subset = 1:n
 vsubset = 1:p
 sample_subset = sample_subset[-15]
@@ -13,30 +13,33 @@ p = p - 1
 
 beta = rbinom(p,1,0.3) * rnorm(p)
 
-pgen <- pgenlibr::NewPgen("/Users/ruilinli/plink-ng/toy_data.pgen", pvar = NULL, 
+pgen <- pgenlibr::NewPgen("data/toy_data.pgen", pvar = NULL, 
                           sample_subset =sample_subset)
-X <- pgenlibr::ReadList(pgen, vsubset, meanimpute=F)
+X <- pgenlibr::ReadList(pgen, vsubset, meanimpute=T)
 y = X %*% beta 
 
-lam = 0.12190
+
 # Reference
-fit_ref = glmnet(X, y, family = 'gaussian', lambda=lam, standardize = T, intercept = T)
+fit_ref = glmnet(X, y, family = 'gaussian',  standardize = T, intercept = T)
+
 
 # Dense
-#fit_dense = glmnet(X, y, family = gaussian(), lambda=lam, standardize = T, intercept = T)
 fit_dense = glmnet(X, y, family = gaussian(), standardize = T, intercept = T)
 
 # Sparse
 Xs = as(X, 'sparseMatrix')
-fit_sparse = glmnet(Xs, y, family = gaussian(), lambda=lam, standardize = T, intercept = T)
+fit_sparse = glmnet(Xs, y, family = gaussian(), standardize = T, intercept = T)
 
 
 # Plink Format
-a = glmnet::PlinkMatrix("/Users/ruilinli/plink-ng/toy_data.pgen", sample_subset, vsubset)
+Xp = glmnet::PlinkMatrix("data/toy_data.pgen", sample_subset, vsubset)
 
 
-fit_plink = glmnet(a, y, family = gaussian(),  standardize = T, intercept = T)
+fit_plink = glmnet(Xp, y, family = gaussian(),  standardize = T, intercept = T)
 
+# Test matrix-vector multiplication
+# Notice that, after calling glmnet on Xp with standardize and intercept
+# the value has been modified
 y2 = rnorm(p)
 z = rnorm(n)
 
@@ -44,12 +47,12 @@ X = center(X, rep(1.0, n))
 X = X$x
 X = standardize(X,rep(1.0, n))
 X = X$x
-max(abs(drop(X%*% y2) - a %*% y2))
-max(abs(drop(z %*% X) - z %*% a))
+max(abs(drop(X%*% y2) - Xp %*% y2))
+max(abs(drop(z %*% X) - z %*% Xp))
 
 
 
-me_dense = max(abs( fit_dense$beta -  fit_ref$beta))
+me_dense = max(abs(fit_dense$beta -  fit_ref$beta))
 me_sparse = max(abs(fit_sparse$beta -  fit_ref$beta))
 me_plink = max(abs(fit_plink$beta - fit_ref$beta))
 

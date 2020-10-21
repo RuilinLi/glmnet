@@ -1,0 +1,24 @@
+PLINK v2.00a3 AVX2 (23 Sep 2020)
+Options in effect:
+  --dummy 3000 3000
+  --make-pgen
+  --out toy_data
+
+Hostname: DN0a1e462a.SUNet
+Working directory: /Users/ruilinli/plink-ng
+Start time: Thu Oct 15 12:09:44 2020
+
+Random number seed: 1602788984
+16384 MiB RAM detected; reserving 8192 MiB for main workspace.
+Using up to 12 threads (change this with --threads).
+Dummy data (3000 samples, 3000 SNPs) written to toy_data-temporary.pgen +
+toy_data-temporary.pvar + toy_data-temporary.psam .
+3000 samples (3000 females, 0 males; 3000 founders) loaded from
+toy_data-temporary.psam.
+3000 variants loaded from toy_data-temporary.pvar.
+1 binary phenotype loaded (1496 cases, 1504 controls).
+Writing toy_data.psam ... done.
+Writing toy_data.pvar ... done.
+Writing toy_data.pgen ... done.
+
+End time: Thu Oct 15 12:09:44 2020
