@@ -266,6 +266,56 @@ SEXP PlinkPreMultiplyv(SEXP ptr2, SEXP v2, SEXP r2) {
     p->pre_multiply_vector(REAL(v2), REAL(r2));
     return R_NilValue;
 }
+
+SEXP Getju(const SEXP x2, const SEXP exclude2) {
+    int numexclude = length(exclude2);
+    int ncol = ncols(x2);
+    int nrow = nrows(x2);
+
+
+    double *x = REAL(x2);
+    SEXP ju = PROTECT(allocVector(INTSXP, ncol));
+    int *ju_ptr = INTEGER(ju);
+    SEXP nzvarR = PROTECT(allocVector(INTSXP, 1));
+    int *nzvar = INTEGER(nzvarR);
+    *nzvar = 0;
+    for (int i = 0; i < ncol; ++i) {
+        double max_val = x[i * nrow];
+        double min_val = x[i * nrow];
+        for (int j = 1; j < nrow; ++j) {
+            double current = x[i * nrow + j];
+            if (current > max_val) {
+                max_val = current;
+            }
+            if (current < min_val) {
+                min_val = current;
+            }
+        }
+
+        if (max_val != min_val) {
+            ju_ptr[i] = 1;
+            (*nzvar)++;
+        } else {
+            ju_ptr[i] = 0;
+        }
+    }
+
+    if (numexclude > 0) {
+        int *exclude = INTEGER(exclude2);
+        for (int i = 0; i < numexclude; ++i) {
+            if (ju_ptr[exclude[i] - 1]) {
+                ju_ptr[exclude[i] - 1] = 0;
+                (*nzvar)--;
+            }
+        }
+    }
+    SEXP result = PROTECT(allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(result, 0, ju);
+    SET_VECTOR_ELT(result, 1, nzvarR);
+
+    UNPROTECT(3);
+    return result;
+}
 // SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
 //                SEXP nvars2, SEXP x2, SEXP r2, SEXP v2, SEXP intr2, SEXP ju2,
 //                SEXP vp2, SEXP cl2, SEXP nx2, SEXP thr2, SEXP maxit2, SEXP a2,

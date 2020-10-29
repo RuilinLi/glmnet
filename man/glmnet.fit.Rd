@@ -22,7 +22,8 @@ glmnet.fit(
   warm = NULL,
   from.glmnet.path = FALSE,
   save.fit = FALSE,
-  trace.it = 0
+  trace.it = 0,
+  start_val = NULL
 )
 }
 \arguments{

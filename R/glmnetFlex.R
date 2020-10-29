@@ -176,8 +176,10 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
     vp = as.double(vp * nvars / sum(vp))
 
     # if all the non-excluded variables have zero variance, throw error
-    nzvar <- setdiff(which(colmax(x) != colmin(x)), exclude)
-    if (length(nzvar) == 0) stop("All used predictors have zero variance")
+    ju <- .Call("Getju", x, exclude)
+    nzvar <- ju[[2]]
+    ju <- ju[[1]]
+    if (nzvar == 0L) stop("All used predictors have zero variance")
 
     ### check on limits
     control <- glmnet.control()
@@ -240,7 +242,7 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
 
     # get null deviance and lambda max
     start_val <- get_start(x, y, weights, family, intercept, is.offset,
-                           offset, exclude, vp, alpha)
+                           offset, exclude, vp, alpha, ju)
 
     # work out lambda values
     nlam = as.integer(nlambda)
@@ -283,7 +285,7 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
                           maxit = maxit, penalty.factor = vp, exclude = exclude,
                           lower.limits = lower.limits, upper.limits = upper.limits,
                           warm = fit, from.glmnet.path = TRUE, save.fit = TRUE,
-                          trace.it = trace.it)
+                          trace.it = trace.it, start_val=start_val, ju=ju)
         if (trace.it == 1) utils::setTxtProgressBar(pb, k)
         # if error code non-zero, a non-fatal error must have occurred
         # print warning, ignore this lambda value and return result
@@ -464,7 +466,7 @@ glmnet.fit <- function(x, y, weights, lambda, alpha = 1.0,
                        intercept = TRUE, thresh = 1e-10, maxit = 100000,
                        penalty.factor = rep(1.0, nvars), exclude = c(), lower.limits = -Inf,
                        upper.limits = Inf, warm = NULL, from.glmnet.path = FALSE,
-                       save.fit = FALSE, trace.it = 0) {
+                       save.fit = FALSE, trace.it = 0, start_val=NULL, ju=ju) {
     this.call <- match.call()
     control <- glmnet.control()
 
@@ -524,8 +526,6 @@ glmnet.fit <- function(x, y, weights, lambda, alpha = 1.0,
 
     # computation of null deviance (get mu in the process)
     if (is.null(warm)) {
-        start_val <- get_start(x, y, weights, family, intercept, is.offset,
-                               offset, exclude, vp, alpha)
         nulldev <- start_val$nulldev
         mu <- start_val$mu
         fit <- NULL
@@ -543,8 +543,7 @@ glmnet.fit <- function(x, y, weights, lambda, alpha = 1.0,
             mu <- linkinv(eta <- eta + offset)
         } else if ("list" %in% class(warm) && "a0" %in% names(warm) &&
                    "beta" %in% names(warm)) {
-            nulldev <- get_start(x, y, weights, family, intercept, is.offset,
-                                   offset, exclude, vp, alpha)$nulldev
+            nulldev <- start_val$nulldev
             fit <- warm
             coefold <- fit$beta   # prev value for coefficients
             intold <- fit$a0    # prev value for intercept
@@ -586,13 +585,15 @@ glmnet.fit <- function(x, y, weights, lambda, alpha = 1.0,
         if (!is.null(fit)) {
             fit$warm_fit$r <- w * (z - eta + offset)
         }
+        coefold2 <- rep(0.0, nvars)
+        coefold2 <- coefold2 + coefold
 
         # do WLS with warmstart from previous iteration
         fit <- elnet.fit(x, z, w, lambda, alpha, intercept,
                          thresh = thresh, maxit = maxit, penalty.factor = vp,
                          exclude = exclude, lower.limits = lower.limits,
                          upper.limits = upper.limits, warm = fit,
-                         from.glmnet.fit = TRUE, save.fit = TRUE)
+                         from.glmnet.fit = TRUE, save.fit = TRUE, ju=ju)
         if (fit$jerr != 0) return(list(jerr = fit$jerr))
 
         # update coefficients, eta, mu and obj_val
@@ -659,17 +660,28 @@ glmnet.fit <- function(x, y, weights, lambda, alpha = 1.0,
             fit$warm_fit$aint <- start_int
             fit$warm_fit$r <- w * (z - eta)
         }
+        
+        if(family$family == 'gaussian')
+        {
+            conv <- TRUE
+            break
+        }
 
         # test for convergence
         if (abs(obj_val - obj_val_old)/(0.1 + abs(obj_val)) < control$epsnr) {
             conv <- TRUE
             break
         }
-        else {
-            coefold <- start
-            intold <- start_int
-            obj_val_old <- obj_val
+        max_diff <- max(apply(sweep(x^2,2,w, '*'), 2, sum) * (coefold2 - start)^2)
+        print(max_diff)
+        if(max_diff < 1e-7)
+        {
+            conv <- TRUE
+            break
         }
+        coefold <- start
+        intold <- start_int
+        obj_val_old <- obj_val
     }
     # end of IRLS loop
 
@@ -805,7 +817,7 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
                       thresh = 1e-7, maxit = 100000,
                       penalty.factor = rep(1.0, nvars), exclude = c(),
                       lower.limits = -Inf, upper.limits = Inf, warm = NULL,
-                      from.glmnet.fit = FALSE, save.fit = FALSE) {
+                      from.glmnet.fit = FALSE, save.fit = FALSE, ju=NULL) {
     this.call <- match.call()
     internal.parms <- glmnet.control()
 
@@ -863,9 +875,6 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
             vp <- as.double(penalty.factor)
         }
         # compute ju
-        ju <- 1 - (colmax(x) == colmin(x)) * 1
-        # apply(x, 2, function(x) 1 - (max(x) == min(x)) * 1)
-        ju[exclude] <- 0
         ju <- as.integer(ju)
 
         # compute cl from lower.limits and upper.limits
@@ -986,7 +995,7 @@ elnet.fit <- function(x, y, weights, lambda, alpha = 1.0, intercept = TRUE,
 #' @param vp Separate penalty factors can be applied to each coefficient.
 #' @param alpha The elasticnet mixing parameter, with \eqn{0 \le \alpha \le 1}.
 get_start <- function(x, y, weights, family, intercept, is.offset, offset,
-                      exclude, vp, alpha) {
+                      exclude, vp, alpha, ju=NULL) {
     nobs <- nrow(x); nvars <- ncol(x)
 
     # compute mu and null deviance
@@ -1017,8 +1026,7 @@ get_start <- function(x, y, weights, family, intercept, is.offset, offset,
     }
 
     # compute lambda max
-    ju <- 1 - (colmax(x) == colmin(x)) * 1
-    ju[exclude] <- 0
+
     r <- y - mu
     eta <- family$linkfun(mu)
     v <- family$variance(mu)

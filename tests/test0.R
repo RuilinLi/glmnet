@@ -1,9 +1,10 @@
 library(glmnet)
 library(pgenlibr)
+library(profvis)
 rm(list=ls())
 set.seed(1)
-n = 1000
-p = 1000
+n = 1200
+p = 1200
 sample_subset = 1:n
 vsubset = 1:p
 sample_subset = sample_subset[-15]
@@ -17,14 +18,24 @@ pgen <- pgenlibr::NewPgen("data/toy_data.pgen", pvar = NULL,
                           sample_subset =sample_subset)
 X <- pgenlibr::ReadList(pgen, vsubset, meanimpute=T)
 y = X %*% beta 
-
+y = y/sd(y)
 
 # Reference
+profvis({
 fit_ref = glmnet(X, y, family = 'gaussian',  standardize = T, intercept = T)
-
+})
 
 # Dense
-fit_dense = glmnet(X, y, family = gaussian(), standardize = T, intercept = T)
+profvis({
+  fit_dense = glmnet(X, y, family = gaussian(), standardize = T, intercept = T, thresh = 1e-7)
+  
+})
+
+
+y2 = rep(1,n)
+y2[y < median(y)] = 0
+fit_dense = glmnet(X, y2, family = "binomial", standardize = T, intercept = T, thresh=1e-7)
+fit_dense2 = glmnet(X, y2, family = binomial(), standardize = T, intercept = T, thresh=1e-7)
 
 # Sparse
 Xs = as(X, 'sparseMatrix')
