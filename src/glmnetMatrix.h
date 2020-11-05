@@ -6,6 +6,7 @@
 #include "pgenlib_read.h"
 #include "pvar_ffi_support.h"
 
+void eigen_get_eta(const double *x, const double *y, double a0, double *result, int no, int ni);
 class MatrixGlmnet {
    public:
     // Compute the inner product of X[,j] and v

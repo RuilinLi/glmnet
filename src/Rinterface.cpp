@@ -267,6 +267,15 @@ SEXP PlinkPreMultiplyv(SEXP ptr2, SEXP v2, SEXP r2) {
     return R_NilValue;
 }
 
+SEXP Cget_eta(SEXP x2, SEXP beta2, SEXP a02) {
+    double a0 = asReal(a02);
+    double *x = REAL(x2);
+    double *beta = REAL(beta2);
+    SEXP result = PROTECT(allocVector(REALSXP, nrows(x2)));
+    eigen_get_eta(x, beta, a0, REAL(result), nrows(x2), ncols(x2));
+    UNPROTECT(1);
+    return result;
+}
 
 SEXP Getju(const SEXP x2, const SEXP exclude2) {
     int numexclude = length(exclude2);

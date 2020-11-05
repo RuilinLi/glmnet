@@ -1184,6 +1184,7 @@ get_eta <- function(x, beta, a0) {
         x@x <- x@x / rep.int(attr(x, "xs"), times = diff(x@p))
         drop(x %*% beta - sum(beta * attr(x, "xm") / attr(x, "xs")) + a0)
     } else {
-        drop(x %*% beta + a0)
+        #drop(x %*% beta + a0)
+        .Call('Cget_eta', x, beta, a0)
     }
 }

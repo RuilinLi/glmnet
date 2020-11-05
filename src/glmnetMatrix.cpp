@@ -64,3 +64,11 @@ void DenseM::update_res(int j, double d, const double *v,
         r[i] -= d * v[i] * data[j * no + i];
     }
 }
+
+void eigen_get_eta(const double *x, const double *y, double a0, double *result,int no, int ni)
+{
+    Eigen::Map<const Eigen::MatrixXd> xm(x, no, ni);
+    Eigen::Map<const Eigen::VectorXd> ym(y, ni);
+    Eigen::Map<Eigen::VectorXd> rm(result, no);
+    rm = (xm * ym).array() + a0;
+}

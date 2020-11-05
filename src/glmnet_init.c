@@ -8,7 +8,7 @@
 */
 
 /* .Call calls */
-extern SEXP get_convergence(SEXP, SEXP, SEXP, SEXP);
+extern SEXP Cget_eta(SEXP, SEXP, SEXP);
 extern SEXP Getju(SEXP, SEXP);
 extern SEXP initialize_plinkmatrix_Xptr(SEXP, SEXP, SEXP);
 extern SEXP PlinkMatrix_info(SEXP, SEXP);
@@ -48,7 +48,7 @@ extern void F77_NAME(splognet)(void *, void *, void *, void *, void *, void *, v
 extern void F77_NAME(spwls)(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"get_convergence",             (DL_FUNC) &get_convergence,              4},
+    {"Cget_eta",                    (DL_FUNC) &Cget_eta,                     3},
     {"Getju",                       (DL_FUNC) &Getju,                        2},
     {"initialize_plinkmatrix_Xptr", (DL_FUNC) &initialize_plinkmatrix_Xptr,  3},
     {"PlinkMatrix_info",            (DL_FUNC) &PlinkMatrix_info,             2},
