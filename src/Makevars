@@ -1,1 +1,1 @@
-PKG_CPPFLAGS=-I./include -O3
+PKG_CPPFLAGS=-I./include -I/Users/ruilinli/myglmnet/inst/include/eigen -O3 -march=native

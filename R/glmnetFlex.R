@@ -146,6 +146,7 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
     }
 
     weights <- as.double(weights)
+    weights <- weights/sum(weights)
 
     ## initialize from family function. Makes y a vector in case of binomial, and possibly changes weights
     ## Expects nobs to be defined, and creates n and mustart (neither used here)
@@ -280,7 +281,7 @@ glmnet.path <- function(x, y, weights=NULL, lambda = NULL, nlambda = 100,
         }
 
         if (trace.it == 2) cat("Fitting lambda index", k, ":", ulam[k], fill = TRUE)
-        fit <- glmnet.fit(x, y, weights / sum(weights), cur_lambda, alpha = alpha, offset = offset,
+        fit <- glmnet.fit(x, y, weights, cur_lambda, alpha = alpha, offset = offset,
                           family = family, intercept = intercept, thresh = thresh,
                           maxit = maxit, penalty.factor = vp, exclude = exclude,
                           lower.limits = lower.limits, upper.limits = upper.limits,
