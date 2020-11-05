@@ -23,7 +23,8 @@ glmnet.fit(
   from.glmnet.path = FALSE,
   save.fit = FALSE,
   trace.it = 0,
-  start_val = NULL
+  start_val = NULL,
+  ju = ju
 )
 }
 \arguments{

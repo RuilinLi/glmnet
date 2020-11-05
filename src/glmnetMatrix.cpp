@@ -1,5 +1,5 @@
 #include "glmnetMatrix.h"
-
+// #include "mkl.h"
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -25,6 +25,7 @@ DenseM::~DenseM() { data = nullptr; }
 
 double DenseM::dot_product(int j, const double *v) {
     return std::inner_product(data + j * no, data + (j + 1) * no, v, 0.0);
+    //return cblas_ddot(no, data + j * no, 1, v, 1);
 }
 
 double DenseM::column_product(int i, int j) {
@@ -34,7 +35,6 @@ double DenseM::column_product(int i, int j) {
 
 double DenseM::vx2(int j, const double *v) {
     double result = 0.0;
-#pragma omp simd reduction(+ : result)
     for (int i = 0; i < no; ++i) {
         result += data[j * no + i] * data[j * no + i] * v[i];
     }

@@ -668,17 +668,17 @@ glmnet.fit <- function(x, y, weights, lambda, alpha = 1.0,
         }
 
         # test for convergence
-        if (abs(obj_val - obj_val_old)/(0.1 + abs(obj_val)) < control$epsnr) {
+        if (abs(obj_val - obj_val_old)/(max(1, abs(obj_val))) < control$epsnr) {
             conv <- TRUE
             break
         }
-        max_diff <- max(apply(sweep(x^2,2,w, '*'), 2, sum) * (coefold2 - start)^2)
-        print(max_diff)
-        if(max_diff < 1e-7)
-        {
-            conv <- TRUE
-            break
-        }
+        # max_diff <- .Call("get_convergence", x, w, coefold2, start)
+        # print(max_diff)
+        # if(max_diff < 1e-7)
+        # {
+        #     conv <- TRUE
+        #     break
+        # }
         coefold <- start
         intold <- start_int
         obj_val_old <- obj_val

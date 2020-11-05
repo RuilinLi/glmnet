@@ -207,7 +207,7 @@ setMethod("wlsFlex", signature(x = "sparseMatrix"), function(x, alm0, almc, alph
 setMethod("wlsFlex", signature(x = "matrix"), function(x, alm0, almc, alpha, m, nobs, 
     nvars, r, v, intr, ju, vp, cl, nx, thr, maxit, a, aint, g, ia, iy, iz, mm, nino, 
     rsqc, nlp, jerr) {
-
+    
     wls_fit <- wls_dense_cpp(alm0 = alm0, almc = almc, alpha = alpha, m = m, no = nobs, 
         ni = nvars, x = x, r = r, v = v, intr = intr, ju = ju, vp = vp, cl = cl, 
         nx = nx, thr = thr, maxit = maxit, a = a, aint = aint, g = g, ia = ia, iy = iy, 

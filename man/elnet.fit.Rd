@@ -19,7 +19,8 @@ elnet.fit(
   upper.limits = Inf,
   warm = NULL,
   from.glmnet.fit = FALSE,
-  save.fit = FALSE
+  save.fit = FALSE,
+  ju = NULL
 )
 }
 \arguments{

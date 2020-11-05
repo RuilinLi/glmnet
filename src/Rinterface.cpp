@@ -267,6 +267,7 @@ SEXP PlinkPreMultiplyv(SEXP ptr2, SEXP v2, SEXP r2) {
     return R_NilValue;
 }
 
+
 SEXP Getju(const SEXP x2, const SEXP exclude2) {
     int numexclude = length(exclude2);
     int ncol = ncols(x2);
@@ -314,6 +315,31 @@ SEXP Getju(const SEXP x2, const SEXP exclude2) {
     SET_VECTOR_ELT(result, 1, nzvarR);
 
     UNPROTECT(3);
+    return result;
+}
+
+SEXP get_convergence(const SEXP x2, const SEXP w2, const SEXP coefold2, const SEXP start2) {
+    int ncol = ncols(x2);
+    int nrow = nrows(x2);
+    double *x = REAL(x2);
+    double *w = REAL(w2);
+    double *coefold = REAL(coefold2);
+    double *start = REAL(start2);
+    double max_diff = 0;
+    for(int i = 0; i < ncol; ++i) {
+        double local_diff = 0.0;
+        for(int j = 0; j < nrow; ++j){
+            local_diff += x[i*nrow + j] * x[i*nrow + j] * w[j];
+        }
+        double param_diff = coefold[i] - start[i];
+        local_diff *= param_diff * param_diff;
+        if(local_diff > max_diff){
+            max_diff = local_diff;
+        }
+    }
+    SEXP result = PROTECT(allocVector(REALSXP, 1));
+    REAL(result)[0] = max_diff;
+    UNPROTECT(1);
     return result;
 }
 // SEXP wls_dense(SEXP alm02, SEXP almc2, SEXP alpha2, SEXP m2, SEXP nobs2,
